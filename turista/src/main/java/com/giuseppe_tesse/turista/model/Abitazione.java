@@ -1,17 +1,20 @@
 package com.giuseppe_tesse.turista.model;
 import java.time.LocalDate;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class Abitazione {
-    private long id;
-    private String nome;
-    private String indirizzo;
-    private double prezzo_per_notte;
-    private int numero_locali;
-    private int capacita_ospiti;
-    private int piano;
-    private LocalDate data_disponibilita_inizio;
-    private LocalDate data_disponibilita_fine;
-    private Host host;
+    @Getter private final long id;
+    @Getter @Setter private String nome;
+    @Getter @Setter private String indirizzo;
+    @Getter @Setter private double prezzo_per_notte;
+    @Getter @Setter private int numero_locali;
+    @Getter @Setter private int capacita_ospiti;
+    @Getter @Setter private int piano;
+    @Getter @Setter private LocalDate data_disponibilita_inizio;
+    @Getter @Setter private LocalDate data_disponibilita_fine;
+    @Getter @Setter private Host host;
 
     public Abitazione(long id, String nome, String indirizzo, double prezzo_per_notte, int numero_locali,
                      int capacita_ospiti, int piano, LocalDate data_disponibilita_inizio,
@@ -28,6 +31,44 @@ public class Abitazione {
         this.host = host;
     }
 
-    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Abitazione other = (Abitazione) obj;
+        return this.id == other.id;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Abitazione{");
+        sb.append("id=").append(id);
+        sb.append(", nome=").append(nome);
+        sb.append(", indirizzo=").append(indirizzo);
+        sb.append(", prezzo_per_notte=").append(prezzo_per_notte);
+        sb.append(", numero_locali=").append(numero_locali);
+        sb.append(", capacita_ospiti=").append(capacita_ospiti);
+        sb.append(", piano=").append(piano);
+        sb.append(", data_disponibilita_inizio=").append(data_disponibilita_inizio);
+        sb.append(", data_disponibilita_fine=").append(data_disponibilita_fine);
+        sb.append(", host=").append(host);
+        sb.append('}');
+        return sb.toString();
+    }
 
 }
