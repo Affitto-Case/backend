@@ -1,0 +1,3 @@
+git remote add origin https://github.com/Gking2004/affitto_case.git
+git branch -M main
+git push -u origin main

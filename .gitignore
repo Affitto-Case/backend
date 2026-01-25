@@ -1,0 +1,47 @@
+# Compilati
+/target/
+/build/
+*.class
+
+# Log
+*.log
+logs/
+
+# File temporanei
+*.tmp
+*.swp
+*.bak
+
+# Config locali
+*.env
+application-local.properties
+application-local.yml
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test output
+/test-output/
+
+# Lombok
+lombok.config
+
+# Docker
+*.pid
+
+# Database locali
+*.db
+*.sqlite
+
+# Coverage
+/coverage/
+/jacoco/
