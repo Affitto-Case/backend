@@ -220,10 +220,6 @@ erDiagram
     HOST {
         int utente_id PK, FK
         string codice_host
-    }
-
-    SUPER_HOST {
-        int host_id PK, FK
         int prenotazioni_totali
         date data_registrazione
     }

@@ -1,7 +1,4 @@
-package com.giuseppe_tesse.turista.model;
-
-
-
+package com.giuseppe_tesse.turista.model;  
 
 public class Utente {
     private final long id;

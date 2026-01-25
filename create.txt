@@ -1,7 +1,7 @@
-echo "# affitto_case" >> README.md
+echo "# backend" >> README.md
 git init
 git add README.md
 git commit -m "first commit"
 git branch -M main
-git remote add origin https://github.com/Gking2004/affitto_case.git
+git remote add origin https://github.com/Affitto-Case/backend.git
 git push -u origin main
