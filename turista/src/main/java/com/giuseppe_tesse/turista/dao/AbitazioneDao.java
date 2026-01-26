@@ -4,9 +4,7 @@ import java.util.Optional;
 
 import com.giuseppe_tesse.turista.model.Abitazione;
 
-public class AbitazioneDao {
-
-    public interface AbitazioneDAO{
+public interface AbitazioneDAO{
 
 // ==================== CREATE ====================
 
@@ -14,15 +12,17 @@ public class AbitazioneDao {
 
 // ==================== READ ====================
 
-    List<Abitazione> readAll();
+    List<Abitazione> findAll();
 
-    Optional<Abitazione> readByProprietario(Long proprietario_id);
+    Optional<Abitazione> findByProprietario(Long proprietario_id);
 
-    Optional<Abitazione> readById(Long id);
+    Optional<Abitazione> findById(Long id);
+    
+    Optional<Abitazione> findByIndirizzoAndPiano(String indirizzo, int piano);
 
 // ==================== UPDATE ====================
 
-    void update(Abitazione abitazione);
+    Optional<Abitazione> update(Abitazione abitazione);
 
 // ==================== DELETE ====================
 
@@ -33,5 +33,3 @@ public class AbitazioneDao {
     boolean deleteByProprietario(Long proprietario_id);
 
     }
-    
-}

@@ -3,15 +3,22 @@ package com.giuseppe_tesse.turista.model;
 import lombok.Getter;
 import lombok.Setter;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Feedback {
-    @Getter private final long id;
+    @Getter private Long id;
     @Getter @Setter private Prenotazione prenotazione;
     @Getter @Setter private String titolo;
     @Getter @Setter private int valutazione;
     @Getter @Setter private String commento;
 
-    public Feedback(long id, Prenotazione prenotazione, String titolo, int valutazione, String commento) {
-        this.id = id;
+    public Feedback(Prenotazione prenotazione, String titolo, int valutazione, String commento) {
         this.titolo = titolo;
         this.prenotazione = prenotazione;
         this.valutazione = valutazione;

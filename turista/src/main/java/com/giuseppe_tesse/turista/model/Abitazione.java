@@ -4,8 +4,16 @@ import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Abitazione {
-    @Getter private final long id;
+    @Getter private Long id;
     @Getter @Setter private String nome;
     @Getter @Setter private String indirizzo;
     @Getter @Setter private double prezzo_per_notte;
@@ -16,10 +24,9 @@ public class Abitazione {
     @Getter @Setter private LocalDate data_disponibilita_fine;
     @Getter @Setter private Host host;
 
-    public Abitazione(long id, String nome, String indirizzo, double prezzo_per_notte, int numero_locali,
+    public Abitazione(String nome, String indirizzo, double prezzo_per_notte, int numero_locali,
                      int capacita_ospiti, int piano, LocalDate data_disponibilita_inizio,
                      LocalDate data_disponibilita_fine, Host host) {
-        this.id = id;
         this.nome = nome;
         this.indirizzo = indirizzo;
         this.prezzo_per_notte = prezzo_per_notte;
@@ -50,7 +57,7 @@ public class Abitazione {
             return false;
         }
         final Abitazione other = (Abitazione) obj;
-        return this.id == other.id;
+        return this.id == other.id; 
     }
 
     @Override

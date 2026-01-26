@@ -5,14 +5,22 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Host extends Utente {
 
-    @Getter private final String codice_host;
+    @Getter private String codice_host;
     @Getter @Setter private int prenotazioni_totali;
 
-    public Host(long id, String nome, String cognome, String email, String password, String indirizzo,
+    public Host(String nome, String cognome, String email, String password, String indirizzo,
                 String codice_host, int prenotazioni_totali, LocalDate data_registrazione) {
-        super(id, nome, cognome, email, password, indirizzo,data_registrazione);
+        super(nome, cognome, email, password, indirizzo,data_registrazione);
         this.codice_host = codice_host;
         this.prenotazioni_totali = prenotazioni_totali;
     }

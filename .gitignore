@@ -45,3 +45,5 @@ lombok.config
 # Coverage
 /coverage/
 /jacoco/
+
+*.txt

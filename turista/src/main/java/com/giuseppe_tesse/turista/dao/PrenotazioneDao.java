@@ -2,11 +2,10 @@ package com.giuseppe_tesse.turista.dao;
 import java.util.List;
 import java.util.Optional;
 
+import com.giuseppe_tesse.turista.model.Abitazione;
 import com.giuseppe_tesse.turista.model.Prenotazione;
 
-public class PrenotazioneDao {
-
-    public interface PrenotazioneDAO {
+public interface PrenotazioneDAO {
 
 // ==================== CREATE ====================
 
@@ -15,6 +14,10 @@ public class PrenotazioneDao {
 // ==================== READ ====================
 
     Optional<Prenotazione> findById(Long id);
+
+    Optional<Abitazione> findByAbitazioneId(Long abitazioneId);
+
+    Optional<List<Prenotazione>> findByPrenotazioneId(Long abitazioneId);
 
     List<Prenotazione> findAll();
 
@@ -29,5 +32,3 @@ public class PrenotazioneDao {
     int deleteAll();
 
     }
-    
-}

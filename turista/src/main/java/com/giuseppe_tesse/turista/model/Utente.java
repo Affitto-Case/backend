@@ -4,10 +4,15 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Utente {
-    @Getter private final long id;
+    @Getter private Long id;
     @Getter @Setter private String nome;
     @Getter @Setter private String cognome;
     @Getter @Setter private String email;
@@ -15,8 +20,7 @@ public class Utente {
     @Getter @Setter private String indirizzo;
     @Getter @Setter private LocalDate data_registrazione;
 
-    public Utente(long id, String nome, String cognome, String email, String password, String indirizzo, LocalDate data_registrazione) {
-        this.id = id;
+    public Utente(String nome, String cognome, String email, String password, String indirizzo, LocalDate data_registrazione) {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;

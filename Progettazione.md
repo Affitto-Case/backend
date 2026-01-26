@@ -120,17 +120,9 @@ src/
 │   │       │   ├── Abitazione.java
 │   │       │   ├── Prenotazione.java
 │   │       │   └── Feedback.java
-│   │       ├── dto/
-│   │       │   ├── UtenteDTO.java
-│   │       │   ├── HostDTO.java
-│   │       │   ├── AbitazioneDTO.java
-│   │       │   ├── PrenotazioneDTO.java
-│   │       │   ├── FeedbackDTO.java
-│   │       │   └── StatisticheDTO.java
 │   │       ├── dao/
 │   │       │   ├── UtenteDAO.java
 │   │       │   ├── HostDAO.java
-│   │       │   ├── SuperHostDAO.java
 │   │       │   ├── AbitazioneDAO.java
 │   │       │   ├── PrenotazioneDAO.java
 │   │       │   └── FeedbackDAO.java
@@ -159,8 +151,7 @@ src/
 │   └── resources/
 │       ├── application.properties
 │       ├── schema.sql
-│       ├── data.sql
-│       └── logback.xml
+│       └── data.sql
 ```
 
 ### Pattern Utilizzati
@@ -172,6 +163,7 @@ Separazione logica di accesso ai dati dal business logic.
 public interface UtenteDAO {
     Utente create(Utente utente);
     Utente findById(Long id);
+    Utente findByEmail(String email);
     List<Utente> findAll();
     Utente update(Utente utente);
     void delete(Long id);
@@ -194,10 +186,6 @@ public class PrenotazioneService {
     }
 }
 ```
-
-#### 3. DTO Pattern
-Trasferimento dati tra layer evitando esposizione entità.
-
 ---
 
 ## Modello Dati
@@ -209,23 +197,24 @@ Trasferimento dati tra layer evitando esposizione entità.
 ```mermaid
 erDiagram
     UTENTE {
-        int id PK
+        Long id PK
         string nome
         string cognome
         string email
         string password
         string indirizzo
+        date data_registrazione
     }
 
     HOST {
-        int utente_id PK, FK
+        Long utente_id PK, FK
         string codice_host
         int prenotazioni_totali
         date data_registrazione
     }
 
     ABITAZIONE {
-        int id PK
+        Long id PK
         string nome
         string indirizzo
         int numero_locali
@@ -234,24 +223,24 @@ erDiagram
         decimal prezzo
         date disponibilita_inizio
         date disponibilita_fine
-        int host_id FK
+        Long host_id FK
     }
 
     PRENOTAZIONE {
-        int id PK
+        Long id PK
         date data_inizio
         date data_fine
-        int abitazione_id FK
-        int utente_id FK
+        Long abitazione_id FK
+        Long utente_id FK
     }
 
     FEEDBACK {
-        int id PK
+        Long id PK
         string titolo
         string testo
         int punteggio
-        int prenotazione_id FK
-        int utente_id FK
+        Long prenotazione_id FK
+        Long utente_id FK
     }
 
     UTENTE ||--o{ PRENOTAZIONE : effettua

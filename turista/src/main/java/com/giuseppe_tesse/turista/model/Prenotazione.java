@@ -1,18 +1,24 @@
 package com.giuseppe_tesse.turista.model;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Prenotazione {
-    @Getter private final long id;
+    @Getter private Long id;
     @Getter @Setter private Abitazione abitazione;
     @Getter @Setter private Utente utente;
-    @Getter @Setter private LocalDate data_inizio;
-    @Getter @Setter private LocalDate data_fine;
+    @Getter @Setter private LocalDateTime data_inizio;
+    @Getter @Setter private LocalDateTime data_fine;
     
-    public Prenotazione(long id, Abitazione abitazione, Utente utente, LocalDate data_inizio, LocalDate data_fine) {
-        this.id = id;
+    public Prenotazione(Abitazione abitazione, Utente utente, LocalDateTime data_inizio, LocalDateTime data_fine) {
         this.abitazione = abitazione;
         this.utente = utente;
         this.data_inizio = data_inizio;

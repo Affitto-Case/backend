@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import com.giuseppe_tesse.turista.model.Feedback;
 
-public class FeedbackDao {
 
-    public interface FeedbackDAO{
+public interface FeedbackDAO{
 
 // ==================== CREATE ====================
 
@@ -14,15 +13,15 @@ public class FeedbackDao {
 
 // ==================== READ ====================
 
-    List<Feedback> readAll();
+    List<Feedback> findAll();
 
-    Optional<List<Feedback>> readByUtente(Long utente_id);
+    Optional<List<Feedback>> findByUtente(Long utente_id);
 
-    Optional<List<Feedback>> readByStruttura(Long prenotazione_id);
+    Optional<List<Feedback>> findByStruttura(Long prenotazione_id);
 
-    Optional<Feedback> readById(Long idFeedback);
+    Optional<Feedback> findById(Long idFeedback);
 
-    Optional<Feedback> read(Long utente_id, Long prenotazione_id);
+    Optional<Feedback> findByUtenteIdAndPrenotazioneId(Long utente_id, Long prenotazione_id);
 
 // ==================== UPDATE ====================
 
@@ -37,5 +36,3 @@ public class FeedbackDao {
     boolean delete(Long utente_id, Long prenotazione_id);
 
     }
-    
-}

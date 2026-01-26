@@ -5,9 +5,7 @@ import java.util.Optional;//Optional per i metodi di ricerca che potrebbero non 
 
 import com.giuseppe_tesse.turista.model.Utente;
 
-public class UtenteDao {
-
-    public interface UtenteDAO {
+public interface UtenteDAO {
 
 // ==================== CREATE ====================
 
@@ -34,5 +32,4 @@ public class UtenteDao {
     boolean deleteByEmail(String email);
     
 }
-    
-}
+
