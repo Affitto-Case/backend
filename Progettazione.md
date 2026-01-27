@@ -768,126 +768,144 @@ Elimina un feedback
 
 ---
 
-### 6. Statistiche
+### 6. Statistics
 
-#### GET /statistiche/abitazione-piu-gettonata
-Ottiene l'abitazione più prenotata nell'ultimo mese
+#### GET /statistics/most-booked-residence
+
+Mostra le abitazioni con più prenotaioni nell'ultimo mese.
 
 **Response 200 OK:**
+
 ```json
 {
-  "abitazione": {
+  "residence": {
     "id": 5,
-    "nome": "Attico Panoramico",
-    "indirizzo": "Via Panoramica 10, Firenze",
-    "prezzo": 180.00
+    "name": "Penthouse with View",
+    "address": "Via Panoramica 10, Florence",
+    "price": 180.00
   },
-  "numeroPrenotazioni": 12,
-  "giorniTotaliPrenotati": 48,
+  "total_bookings": 12,
+  "total_days_booked": 48,
   "host": {
-    "nome": "Laura Verdi",
-    "codiceHost": "HOST003"
+    "full_name": "Laura Verdi",
+    "host_code": "HOST003"
   }
 }
 ```
 
-**Query SQL:**
+**SQL Query:**
+
 ```sql
-SELECT a.*, COUNT(p.id) as num_prenotazioni, 
-       SUM(p.data_fine - p.data_inizio) as giorni_totali
-FROM abitazione a
-JOIN prenotazione p ON a.id = p.abitazione_id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
-GROUP BY a.id
-ORDER BY num_prenotazioni DESC
+SELECT r.*, COUNT(b.id) AS total_bookings, 
+       SUM(b.end_date - b.start_date) AS total_days_booked
+FROM residences r
+JOIN bookings b ON r.id = b.residence_id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY r.id
+ORDER BY total_bookings DESC
 LIMIT 1;
 ```
 
-#### GET /statistiche/host-top-prenotazioni
-Ottiene gli host con più prenotazioni nell'ultimo mese
+---
 
-**Query Parameters (opzionali):**
-- `limit`: numero massimo di risultati (default: 10)
+#### GET /statistics/top-hosts
+
+Mostra gli host con più prenotazione del mese.
+
+**Query Parameters (optional):**
+
+* `limit`: maximum number of results (default: 10)
 
 **Response 200 OK:**
+
 ```json
 [
   {
     "host": {
       "id": 3,
-      "nome": "Laura",
-      "cognome": "Verdi",
-      "codiceHost": "HOST003"
+      "first_name": "Laura",
+      "last_name": "Verdi",
+      "host_code": "HOST003"
     },
-    "numeroPrenotazioni": 25,
-    "giorniTotaliPrenotati": 180,
-    "numeroAbitazioni": 7,
-    "isSuperHost": true
+    "total_bookings": 25,
+    "total_days_booked": 180,
+    "number_of_residences": 7,
+    "is_super_host": true
   }
 ]
 ```
 
-**Query SQL:**
+**SQL Query:**
+
 ```sql
-SELECT h.*, u.nome, u.cognome, 
-       COUNT(p.id) as num_prenotazioni,
-       SUM(p.data_fine - p.data_inizio) as giorni_totali
-FROM host h
-JOIN utente u ON h.utente_id = u.id
-JOIN abitazione a ON a.host_id = h.utente_id
-JOIN prenotazione p ON p.abitazione_id = a.id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
-GROUP BY h.utente_id, u.nome, u.cognome
-ORDER BY num_prenotazioni DESC
+SELECT h.*, u.first_name, u.last_name, 
+       COUNT(b.id) AS total_bookings,
+       SUM(b.end_date - b.start_date) AS total_days_booked
+FROM hosts h
+JOIN users u ON h.user_id = u.id
+JOIN residences r ON r.host_id = h.user_id
+JOIN bookings b ON b.residence_id = r.id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY h.user_id, u.first_name, u.last_name
+ORDER BY total_bookings DESC
 LIMIT 10;
 ```
 
-#### GET /statistiche/utenti-top-giorni
-Ottiene i 5 utenti con più giorni prenotati nell'ultimo mese
+---
+
+#### GET /statistics/top-users
+
+Mostra gli utenti con più giorni di prenotazione del mese.
 
 **Response 200 OK:**
+
 ```json
 [
   {
-    "utente": {
+    "user": {
       "id": 7,
-      "nome": "Paolo",
-      "cognome": "Neri",
+      "first_name": "Paolo",
+      "last_name": "Neri",
       "email": "paolo.neri@email.com"
     },
-    "giorniPrenotati": 28,
-    "numeroPrenotazioni": 4,
-    "spesaTotale": 4200.00
+    "days_booked": 28,
+    "total_bookings": 4,
+    "total_spent": 4200.00
   }
 ]
 ```
 
-**Query SQL:**
+**SQL Query:**
+
 ```sql
 SELECT u.*, 
-       SUM(p.data_fine - p.data_inizio) as giorni_prenotati,
-       COUNT(p.id) as num_prenotazioni,
-       SUM((p.data_fine - p.data_inizio) * a.prezzo) as spesa_totale
-FROM utente u
-JOIN prenotazione p ON u.id = p.utente_id
-JOIN abitazione a ON p.abitazione_id = a.id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
+       SUM(b.end_date - b.start_date) AS days_booked,
+       COUNT(b.id) AS total_bookings,
+       SUM((b.end_date - b.start_date) * r.price) AS total_spent
+FROM users u
+JOIN bookings b ON u.id = b.user_id
+JOIN residences r ON b.residence_id = r.id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
 GROUP BY u.id
-ORDER BY giorni_prenotati DESC
+ORDER BY days_booked DESC
 LIMIT 5;
 ```
 
-#### GET /statistiche/media-posti-letto
-Ottiene il numero medio di posti letto di tutte le abitazioni
+---
+
+#### GET /statistics/average-beds
+
+Mostra il numero medio di posti letto delle abitazioni.
 
 **Response 200 OK:**
+
 ```json
 {
-  "mediaPostiLetto": 5.2,
-  "totaleAbitazioni": 150,
-  "minPostiLetto": 1,
-  "maxPostiLetto": 12,
-  "distribuzione": {
+  "average_beds": 5.2,
+  "total_residences": 150,
+  "min_beds": 1,
+  "max_beds": 12,
+  "distribution": {
     "1-2": 25,
     "3-4": 60,
     "5-6": 40,
@@ -896,40 +914,45 @@ Ottiene il numero medio di posti letto di tutte le abitazioni
 }
 ```
 
-**Query SQL:**
+**SQL Query:**
+
 ```sql
-SELECT AVG(numero_posti_letto) as media,
-       COUNT(*) as totale,
-       MIN(numero_posti_letto) as minimo,
-       MAX(numero_posti_letto) as massimo
-FROM abitazione;
+SELECT AVG(number_of_beds) AS average_beds,
+       COUNT(*) AS total_residences,
+       MIN(number_of_beds) AS min_beds,
+       MAX(number_of_beds) AS max_beds
+FROM residences;
 ```
 
-#### GET /statistiche/dashboard
-Ottiene un riepilogo completo di tutte le statistiche
+---
+
+#### GET /statistics/dashboard
+
+Mostra un sommario completo delle statistiche.
 
 **Response 200 OK:**
+
 ```json
 {
   "overview": {
-    "totaleUtenti": 250,
-    "totaleHost": 45,
-    "totaleSuperHost": 8,
-    "totaleAbitazioni": 150,
-    "totalePrenotazioni": 890,
-    "totaleFeedback": 420
+    "total_users": 250,
+    "total_hosts": 45,
+    "total_super_hosts": 8,
+    "total_residences": 150,
+    "total_bookings": 890,
+    "total_feedbacks": 420
   },
-  "ultimoMese": {
-    "nuovePrenotazioni": 78,
-    "nuoviUtenti": 15,
-    "nuoveAbitazioni": 8,
-    "feedbackRicevuti": 62
+  "last_month": {
+    "new_bookings": 78,
+    "new_users": 15,
+    "new_residences": 8,
+    "feedbacks_received": 62
   },
-  "abitazionePiuGettonata": { /* ... */ },
-  "topHost": [ /* ... */ ],
-  "topUtenti": [ /* ... */ ],
-  "mediaPostiLetto": 5.2,
-  "punteggioMedioFeedback": 4.3
+  "most_booked_residence": { /* ... */ },
+  "top_hosts": [ /* ... */ ],
+  "top_users": [ /* ... */ ],
+  "average_beds": 5.2,
+  "average_feedback_rating": 4.3
 }
 ```
 
@@ -1291,105 +1314,103 @@ CREATE DATABASE IF NOT EXISTS turista_facoltoso;
 -- Connessione al database (PostgreSQL)
 \c turista_facoltoso;
 
--- Tabella UTENTE
-CREATE TABLE utente (
+-- Users Table
+CREATE TABLE Users (
     id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cognome VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    indirizzo VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255),
+    address VARCHAR(255),
+    registration_date DATE
 );
 
--- Indice per ricerche frequenti su email
-CREATE INDEX idx_utente_email ON utente(email);
-
--- Tabella HOST
-CREATE TABLE host (
-    utente_id INT PRIMARY KEY,
-    codice_host VARCHAR(50) UNIQUE NOT NULL,
-    data_registrazione DATE NOT NULL,
-    prenotazioni_totali INT DEFAULT 0 CHECK (prenotazioni_totali >= 100),
-    FOREIGN KEY (utente_id) REFERENCES utente(id)
-        ON DELETE CASCADE
+-- Hosts Table
+CREATE TABLE Hosts (
+    user_id INT PRIMARY KEY REFERENCES Users(id),
+    host_code VARCHAR(50) UNIQUE NOT NULL,
+    total_bookings INT DEFAULT 0,
+    registration_date DATE,
+    is_super_host BOOLEAN DEFAULT FALSE
 );
 
--- Indice su codice_host per ricerche
-CREATE INDEX idx_host_codice ON host(codice_host);
-
--- Tabella ABITAZIONE
-CREATE TABLE abitazione (
+-- Residences Table
+CREATE TABLE Residences (
     id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    indirizzo VARCHAR(255) NOT NULL,
-    numero_locali INT CHECK (numero_locali > 0),
-    numero_posti_letto INT CHECK (numero_posti_letto > 0),
-    piano INT,
-    prezzo DECIMAL(8,2) CHECK (prezzo > 0),
-    disponibilita_inizio DATE NOT NULL,
-    disponibilita_fine DATE NOT NULL,
-    host_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (host_id) REFERENCES host(utente_id)
-        ON DELETE CASCADE,
-    CHECK (disponibilita_fine > disponibilita_inizio)
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    number_of_rooms INT,
+    number_of_beds INT,
+    floor INT,
+    price DECIMAL(10,2),
+    availability_start DATE,
+    availability_end DATE,
+    host_id INT NOT NULL REFERENCES Hosts(user_id)
 );
 
--- Indici per query frequenti
-CREATE INDEX idx_abitazione_host ON abitazione(host_id);
-CREATE INDEX idx_abitazione_prezzo ON abitazione(prezzo);
-CREATE INDEX idx_abitazione_disponibilita ON abitazione(disponibilita_inizio, disponibilita_fine);
-
--- Tabella PRENOTAZIONE
-CREATE TABLE prenotazione (
+-- Bookings Table
+CREATE TABLE Bookings (
     id SERIAL PRIMARY KEY,
-    data_inizio DATE NOT NULL,
-    data_fine DATE NOT NULL,
-    abitazione_id INT NOT NULL,
-    utente_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (abitazione_id) REFERENCES abitazione(id)
-        ON DELETE CASCADE,
-    FOREIGN KEY (utente_id) REFERENCES utente(id)
-        ON DELETE CASCADE,
-    CHECK (data_fine > data_inizio)
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    residence_id INT REFERENCES Residences(id),
+    user_id INT REFERENCES Users(id),
+    CONSTRAINT chk_dates CHECK (end_date > start_date)
 );
 
--- Indici per performance
-CREATE INDEX idx_prenotazione_utente ON prenotazione(utente_id);
-CREATE INDEX idx_prenotazione_abitazione ON prenotazione(abitazione_id);
-CREATE INDEX idx_prenotazione_date ON prenotazione(data_inizio, data_fine);
-CREATE INDEX idx_prenotazione_created ON prenotazione(created_at);
-
--- Tabella FEEDBACK
-CREATE TABLE feedback (
+-- Feedbacks Table
+CREATE TABLE Feedbacks (
     id SERIAL PRIMARY KEY,
-    titolo VARCHAR(100),
-    testo TEXT,
-    punteggio INT NOT NULL CHECK (punteggio BETWEEN 1 AND 5),
-    prenotazione_id INT NOT NULL,
-    utente_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (prenotazione_id) REFERENCES prenotazione(id)
-        ON DELETE CASCADE,
-    FOREIGN KEY (utente_id) REFERENCES utente(id)
-        ON DELETE CASCADE,
-    UNIQUE(prenotazione_id) -- Un solo feedback per prenotazione
+    title VARCHAR(255),
+    text TEXT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    booking_id INT REFERENCES Bookings(id),
+    user_id INT REFERENCES Users(id)
 );
 
--- Indici per query frequenti
-CREATE INDEX idx_feedback_prenotazione ON feedback(prenotazione_id);
-CREATE INDEX idx_feedback_utente ON feedback(utente_id);
-CREATE INDEX idx_feedback_punteggio ON feedback(punteggio);
+-- ------------------------
+-- INDEXES SUGGESTED
+-- ------------------------
+
+-- USERS
+CREATE INDEX idx_users_email ON Users(email);                   -- ricerca utenti per email
+CREATE INDEX idx_users_registration_date ON Users(registration_date);  -- utenti recenti
+
+-- HOSTS
+CREATE INDEX idx_hosts_host_code ON Hosts(host_code);          -- ricerca host per codice
+CREATE INDEX idx_hosts_total_bookings ON Hosts(total_bookings); -- top hosts per prenotazioni
+CREATE INDEX idx_hosts_is_super_host ON Hosts(is_super_host); -- filtri super host
+
+-- RESIDENCES
+CREATE INDEX idx_residences_host_id ON Residences(host_id);       -- join host-residences
+CREATE INDEX idx_residences_price ON Residences(price);           -- filtri per prezzo
+CREATE INDEX idx_residences_availability_start ON Residences(availability_start); -- filtraggio disponibilità
+CREATE INDEX idx_residences_availability_end ON Residences(availability_end);
+CREATE INDEX idx_residences_number_of_beds ON Residences(number_of_beds); -- statistiche letti
+CREATE INDEX idx_residences_number_of_rooms ON Residences(number_of_rooms);
+
+-- BOOKINGS
+CREATE INDEX idx_bookings_user_id ON Bookings(user_id);           -- join user-bookings
+CREATE INDEX idx_bookings_residence_id ON Bookings(residence_id); -- join residence-bookings
+CREATE INDEX idx_bookings_start_date ON Bookings(start_date);     -- filtri per periodo
+CREATE INDEX idx_bookings_end_date ON Bookings(end_date);
+CREATE INDEX idx_bookings_user_start_date ON Bookings(user_id, start_date); -- statistiche top users
+CREATE INDEX idx_bookings_residence_start_date ON Bookings(residence_id, start_date); -- statistiche top residences
+
+-- FEEDBACKS
+CREATE INDEX idx_feedbacks_booking_id ON Feedbacks(booking_id);   -- join booking-feedback
+CREATE INDEX idx_feedbacks_user_id ON Feedbacks(user_id);         -- join user-feedback
+CREATE INDEX idx_feedbacks_rating ON Feedbacks(rating);           -- calcolo punteggio medio
+CREATE INDEX idx_feedbacks_created_rating ON Feedbacks(rating);   -- eventualmente per filtri temporali
+
+
 ```
 
 ### Script DML (data.sql)
 
 ```sql
--- Inserimento utenti normali
-INSERT INTO utente (nome, cognome, email,password, indirizzo) VALUES
+-- Insert normal users
+INSERT INTO Users (first_name, last_name, email, password, address) VALUES
 ('Mario', 'Rossi', 'mario.rossi@email.com','Password1', 'Via Roma 1, Milano'),
 ('Laura', 'Bianchi', 'laura.bianchi@email.com','Password2', 'Corso Italia 25, Roma'),
 ('Paolo', 'Verdi', 'paolo.verdi@email.com', 'Password3','Via Garibaldi 10, Napoli'),
@@ -1399,49 +1420,48 @@ INSERT INTO utente (nome, cognome, email,password, indirizzo) VALUES
 ('Luca', 'Viola', 'luca.viola@email.com','Password7', 'Corso Vittorio 12, Torino'),
 ('Sara', 'Arancio', 'sara.arancio@email.com','Password8', 'Via Manzoni 20, Palermo');
 
--- Inserimento utenti che diventeranno host
-INSERT INTO utente (nome, cognome, email,password, indirizzo) VALUES
+-- Insert users that will become hosts
+INSERT INTO Users (first_name, last_name, email, password, address) VALUES
 ('Giovanni', 'Ferrari', 'giovanni.ferrari@email.com','Password9', 'Via Venezia 20, Venezia'),
 ('Marco', 'Colombo', 'marco.colombo@email.com','Password10', 'Via Milano 8, Como'),
 ('Elena', 'Ricci', 'elena.ricci@email.com','Password11', 'Via Napoli 12, Amalfi'),
 ('Chiara', 'Russo', 'chiara.russo@email.com','Password12', 'Via Firenze 30, Siena'),
 ('Roberto', 'Costa', 'roberto.costa@email.com','Password3', 'Via Genova 15, Portofino');
 
--- Promozione utenti a host
-INSERT INTO host (utente_id, codice_host) VALUES
+-- Promote users to hosts
+INSERT INTO Hosts (user_id, host_code) VALUES
 (9, 'HOST001'),
 (10, 'HOST002'),
 (11, 'HOST003'),
 (12, 'HOST004'),
 (13, 'HOST005');
 
--- Inserimento abitazioni
-INSERT INTO abitazione (nome, indirizzo, numero_locali, numero_posti_letto, piano, prezzo, disponibilita_inizio, disponibilita_fine, host_id) VALUES
--- Abitazioni HOST001 (Giovanni Ferrari)
+-- Insert residences
+INSERT INTO Residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES
+-- Residences HOST001 (Giovanni Ferrari)
 ('Villa sul Lago', 'Via del Lago 5, Como', 5, 8, 0, 250.00, '2025-01-01', '2025-12-31', 9),
 ('Appartamento Centro', 'Piazza San Marco 10, Venezia', 3, 4, 2, 180.00, '2025-01-01', '2025-12-31', 9),
 ('Loft Moderno', 'Via Garibaldi 15, Venezia', 2, 2, 3, 150.00, '2025-01-01', '2025-12-31', 9),
 
--- Abitazioni HOST002 (Marco Colombo)
+-- Residences HOST002 (Marco Colombo)
 ('Chalet in Montagna', 'Via Alpina 20, Como', 4, 6, 0, 200.00, '2025-01-01', '2025-12-31', 10),
 ('Casa Rustica', 'Via Provinciale 8, Bellagio', 4, 5, 0, 160.00, '2025-01-01', '2025-12-31', 10),
 
--- Abitazioni HOST003 (Elena Ricci)
+-- Residences HOST003 (Elena Ricci)
 ('Attico Panoramico', 'Via Panoramica 10, Firenze', 6, 10, 5, 300.00, '2025-01-01', '2025-12-31', 11),
 ('Villa con Piscina', 'Via del Mare 25, Amalfi', 7, 12, 0, 400.00, '2025-01-01', '2025-12-31', 11),
 ('Monolocale Elegante', 'Via Tornabuoni 5, Firenze', 1, 2, 1, 120.00, '2025-01-01', '2025-12-31', 11),
 
--- Abitazioni HOST004 (Chiara Russo)
+-- Residences HOST004 (Chiara Russo)
 ('Casale Toscano', 'Strada Provinciale 12, Siena', 8, 14, 0, 450.00, '2025-01-01', '2025-12-31', 12),
 ('Appartamento Storico', 'Piazza del Campo 3, Siena', 3, 4, 1, 140.00, '2025-01-01', '2025-12-31', 12),
 
--- Abitazioni HOST005 (Roberto Costa)
+-- Residences HOST005 (Roberto Costa)
 ('Villa sul Mare', 'Lungomare 50, Portofino', 6, 10, 0, 350.00, '2025-01-01', '2025-12-31', 13),
 ('Mansarda Romantica', 'Via Castello 8, Portofino', 2, 2, 4, 180.00, '2025-01-01', '2025-12-31', 13);
 
--- Inserimento prenotazioni (gennaio 2025)
-INSERT INTO prenotazione (data_inizio, data_fine, abitazione_id, utente_id) VALUES
--- Gennaio
+-- Insert bookings (January 2025)
+INSERT INTO Bookings (start_date, end_date, residence_id, user_id) VALUES
 ('2025-01-05', '2025-01-10', 1, 1),
 ('2025-01-12', '2025-01-15', 2, 2),
 ('2025-01-08', '2025-01-14', 4, 3),
@@ -1453,107 +1473,91 @@ INSERT INTO prenotazione (data_inizio, data_fine, abitazione_id, utente_id) VALU
 ('2025-01-25', '2025-01-30', 5, 1),
 ('2025-01-27', '2025-01-31', 11, 2);
 
--- Inserimento feedback
-INSERT INTO feedback (titolo, testo, punteggio, prenotazione_id, utente_id) VALUES
-('Soggiorno fantastico', 'Villa bellissima con vista mozzafiato sul lago. Host molto disponibile e accogliente.', 5, 1, 1),
-('Ottima posizione', 'Appartamento in pieno centro, comodissimo per visitare Venezia. Pulito e ben arredato.', 4, 2, 2),
-('Esperienza top', 'Chalet perfetto per una settimana sulla neve. Tutto come da descrizione.', 5, 3, 3),
-('Consigliato!', 'Attico spazioso e luminoso, vista incredibile su Firenze. Torneremo sicuramente.', 5, 4, 4),
-('Meraviglioso', 'La villa è ancora più bella dal vivo. Piscina fantastica e giardino curatissimo.', 5, 5, 5),
-('Molto carino', 'Loft moderno e accogliente, esattamente come nelle foto. Unico neo: un po rumoroso.', 4, 6, 6);
+-- Insert feedbacks
+INSERT INTO Feedbacks (title, text, rating, booking_id, user_id) VALUES
+('Fantastic stay', 'Beautiful villa with amazing lake view. Very kind and welcoming host.', 5, 1, 1),
+('Great location', 'Apartment in the city center, very convenient for visiting Venice. Clean and well-furnished.', 4, 2, 2),
+('Top experience', 'Perfect chalet for a week in the snow. Everything as described.', 5, 3, 3),
+('Highly recommended', 'Spacious and bright penthouse with incredible view of Florence. We will return for sure.', 5, 4, 4),
+('Wonderful', 'The villa is even more beautiful in real life. Fantastic pool and well-kept garden.', 5, 5, 5),
+('Very cozy', 'Modern loft, exactly like in the photos. Only downside: a bit noisy.', 4, 6, 6);
 
--- Aggiornamento contatore prenotazioni per simulazione
-UPDATE super_host SET prenotazioni_totali = 125 WHERE host_id = 11;
-
--- Query di verifica
-SELECT * FROM utente;
-SELECT * FROM host;
-SELECT * FROM super_host;
-SELECT * FROM abitazione;
-SELECT * FROM prenotazione;
-SELECT * FROM feedback;
-
--- Query statistiche di test
-
--- Abitazione più gettonata nell'ultimo mese
-SELECT a.id, a.nome, COUNT(p.id) as num_prenotazioni
-FROM abitazione a
-JOIN prenotazione p ON a.id = p.abitazione_id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
-GROUP BY a.id, a.nome
-ORDER BY num_prenotazioni DESC
+-- Most booked residence in the last month
+SELECT r.id, r.name, COUNT(b.id) AS total_bookings
+FROM Residences r
+JOIN Bookings b ON r.id = b.residence_id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY r.id, r.name
+ORDER BY total_bookings DESC
 LIMIT 1;
 
--- Host con più prenotazioni nell'ultimo mese
-SELECT h.utente_id, u.nome, u.cognome, h.codice_host, COUNT(p.id) as num_prenotazioni
-FROM host h
-JOIN utente u ON h.utente_id = u.id
-JOIN abitazione a ON a.host_id = h.utente_id
-JOIN prenotazione p ON p.abitazione_id = a.id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
-GROUP BY h.utente_id, u.nome, u.cognome, h.codice_host
-ORDER BY num_prenotazioni DESC;
+-- Hosts with most bookings in the last month
+SELECT h.user_id, u.first_name, u.last_name, h.host_code, COUNT(b.id) AS total_bookings
+FROM Hosts h
+JOIN Users u ON h.user_id = u.id
+JOIN Residences r ON r.host_id = h.user_id
+JOIN Bookings b ON b.residence_id = r.id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY h.user_id, u.first_name, u.last_name, h.host_code
+ORDER BY total_bookings DESC;
 
--- Top 5 utenti con più giorni prenotati nell'ultimo mese
-SELECT u.id, u.nome, u.cognome, 
-       SUM(p.data_fine - p.data_inizio) as giorni_totali
-FROM utente u
-JOIN prenotazione p ON u.id = p.utente_id
-WHERE p.data_inizio >= CURRENT_DATE - INTERVAL '1 month'
-GROUP BY u.id, u.nome, u.cognome
-ORDER BY giorni_totali DESC
+-- Top 5 users with most booked days in the last month
+SELECT u.id, u.first_name, u.last_name, 
+       SUM(b.end_date - b.start_date) AS total_days
+FROM Users u
+JOIN Bookings b ON u.id = b.user_id
+WHERE b.start_date >= CURRENT_DATE - INTERVAL '1 month'
+GROUP BY u.id, u.first_name, u.last_name
+ORDER BY total_days DESC
 LIMIT 5;
 
--- Media posti letto
-SELECT AVG(numero_posti_letto) as media_posti_letto
-FROM abitazione;
-```
+-- Average number of beds
+SELECT AVG(number_of_beds) AS avg_beds
+FROM Residences;
 
-### Query Utili per le Statistiche
+-- Overlapping bookings check
+SELECT b1.*
+FROM Bookings b1
+JOIN Bookings b2 ON b1.residence_id = b2.residence_id
+    AND b1.id != b2.id
+WHERE (b1.start_date BETWEEN b2.start_date AND b2.end_date)
+   OR (b1.end_date BETWEEN b2.start_date AND b2.end_date)
+   OR (b2.start_date BETWEEN b1.start_date AND b1.end_date);
 
-```sql
--- 1. Verifica sovrapposizioni prenotazioni (per validazione)
-SELECT p1.*
-FROM prenotazione p1
-JOIN prenotazione p2 ON p1.abitazione_id = p2.abitazione_id 
-    AND p1.id != p2.id
-WHERE (p1.data_inizio BETWEEN p2.data_inizio AND p2.data_fine)
-   OR (p1.data_fine BETWEEN p2.data_inizio AND p2.data_fine)
-   OR (p2.data_inizio BETWEEN p1.data_inizio AND p1.data_fine);
+-- Last booking for a user
+SELECT DISTINCT ON (user_id) *
+FROM Bookings
+WHERE user_id = ?
+ORDER BY user_id, created_at DESC;
 
--- 2. Ultima prenotazione per utente
-SELECT DISTINCT ON (utente_id) *
-FROM prenotazione
-WHERE utente_id = ?
-ORDER BY utente_id, created_at DESC;
+-- Residences of a specific host
+SELECT r.*, 
+       COUNT(DISTINCT b.id) AS total_bookings
+FROM Residences r
+LEFT JOIN Bookings b ON r.id = b.residence_id
+WHERE r.host_id = (SELECT user_id FROM Hosts WHERE host_code = ?)
+GROUP BY r.id;
 
--- 3. Abitazioni di un host specifico
-SELECT a.*, 
-       COUNT(DISTINCT p.id) as num_prenotazioni_totali
-FROM abitazione a
-LEFT JOIN prenotazione p ON a.id = p.abitazione_id
-WHERE a.host_id = (SELECT utente_id FROM host WHERE codice_host = ?)
-GROUP BY a.id;
+-- Average rating per host
+SELECT h.user_id, u.first_name, u.last_name,
+       AVG(f.rating) AS avg_rating,
+       COUNT(f.id) AS total_feedbacks
+FROM Hosts h
+JOIN Users u ON h.user_id = u.id
+JOIN Residences r ON r.host_id = h.user_id
+JOIN Bookings b ON b.residence_id = r.id
+LEFT JOIN Feedbacks f ON f.booking_id = b.id
+GROUP BY h.user_id, u.first_name, u.last_name;
 
--- 4. Punteggio medio per host
-SELECT h.utente_id, u.nome, u.cognome,
-       AVG(f.punteggio) as punteggio_medio,
-       COUNT(f.id) as num_feedback
-FROM host h
-JOIN utente u ON h.utente_id = u.id
-JOIN abitazione a ON a.host_id = h.utente_id
-JOIN prenotazione p ON p.abitazione_id = a.id
-LEFT JOIN feedback f ON f.prenotazione_id = p.id
-GROUP BY h.utente_id, u.nome, u.cognome;
-
--- 5. Verifica se utente può lasciare feedback (ha soggiornato?)
+-- Check if a user can leave feedback (has stayed?)
 SELECT COUNT(*)
-FROM prenotazione p
-WHERE p.utente_id = ?
-  AND p.abitazione_id IN (
-    SELECT id FROM abitazione WHERE host_id = ?
+FROM Bookings b
+WHERE b.user_id = ?
+  AND b.residence_id IN (
+    SELECT id FROM Residences WHERE host_id = ?
   )
-  AND p.data_fine < CURRENT_DATE;
+  AND b.end_date < CURRENT_DATE;
+
 ```
 
 ---
@@ -1650,712 +1654,5 @@ WHERE p.utente_id = ?
   - Query SQL complesse
   - React hooks e gestione stato
   - Validazioni e sicurezza
-
----
-
-```markdown
-## Note Tecniche Aggiuntive
-
-### Validazioni Backend
-
-#### Validazione Email
-```java
-public void validateEmail(String email) {
-    String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-    if (!email.matches(emailRegex)) {
-        throw new BadRequestException("Email non valida");
-    }
-}
-```
-
-#### Validazione Date Prenotazione
-```java
-public void validatePrenotazioneDate(Date inizio, Date fine, Abitazione abitazione) {
-    // Controllo date logiche
-    if (fine.before(inizio) || fine.equals(inizio)) {
-        throw new BadRequestException("Data fine deve essere successiva a data inizio");
-    }
-    
-    // Controllo disponibilità abitazione
-    if (inizio.before(abitazione.getDisponibilitaInizio()) || 
-        fine.after(abitazione.getDisponibilitaFine())) {
-        throw new BadRequestException(
-            "Le date non rientrano nel periodo di disponibilità dell'abitazione"
-        );
-    }
-    
-    // Controllo sovrapposizioni
-    List<Prenotazione> prenotazioniEsistenti = 
-        prenotazioneDAO.findByAbitazioneAndPeriodo(abitazione.getId(), inizio, fine);
-    
-    if (!prenotazioniEsistenti.isEmpty()) {
-        throw new BadRequestException(
-            "L'abitazione non è disponibile nel periodo selezionato"
-        );
-    }
-}
-```
-
-#### Validazione Feedback
-```java
-public void validateFeedback(FeedbackDTO dto) {
-    // Verifica che l'utente abbia effettivamente soggiornato
-    Prenotazione prenotazione = prenotazioneDAO.findById(dto.getPrenotazioneId());
-    
-    if (prenotazione == null) {
-        throw new ResourceNotFoundException("Prenotazione non trovata");
-    }
-    
-    if (!prenotazione.getUtenteId().equals(dto.getUtenteId())) {
-        throw new BadRequestException(
-            "Solo l'utente che ha effettuato la prenotazione può lasciare un feedback"
-        );
-    }
-    
-    // Verifica che la prenotazione sia terminata
-    if (prenotazione.getDataFine().after(new Date())) {
-        throw new BadRequestException(
-            "Non puoi lasciare un feedback prima della fine del soggiorno"
-        );
-    }
-    
-    // Verifica che non esista già un feedback per questa prenotazione
-    if (feedbackDAO.existsByPrenotazioneId(dto.getPrenotazioneId())) {
-        throw new BadRequestException(
-            "Esiste già un feedback per questa prenotazione"
-        );
-    }
-}
-```
-
-### Gestione Transazioni
-
-#### Creazione Prenotazione con Aggiornamento Super-Host
-```java
-@Transactional
-public Prenotazione createPrenotazione(PrenotazioneDTO dto) throws SQLException {
-    Connection conn = null;
-    try {
-        conn = DatabaseConnection.getConnection();
-        conn.setAutoCommit(false);
-        
-        // 1. Crea la prenotazione
-        Prenotazione prenotazione = prenotazioneDAO.create(dto.toEntity(), conn);
-        
-        // 2. Recupera l'host dell'abitazione
-        Abitazione abitazione = abitazioneDAO.findById(dto.getAbitazioneId());
-        int hostId = abitazione.getHostId();
-        
-        // 3. Incrementa il contatore prenotazioni dell'host
-        hostDAO.incrementaPrenotazioni(hostId, conn);
-        
-        // 4. Verifica se l'host ha raggiunto 100 prenotazioni
-        Host host = hostDAO.findById(hostId);
-        if (host.getPrenotazioniTotali() >= 100) {
-            // 5. Se non è già super-host, promuovilo
-            if (!superHostDAO.exists(hostId)) {
-                SuperHost superHost = new SuperHost();
-                superHost.setHostId(hostId);
-                superHost.setPrenotazioniTotali(host.getPrenotazioniTotali());
-                superHost.setDataRegistrazione(new Date());
-                superHostDAO.create(superHost, conn);
-                
-                logger.info("Host {} promosso a Super-Host!", hostId);
-            }
-        }
-        
-        conn.commit();
-        return prenotazione;
-        
-    } catch (Exception e) {
-        if (conn != null) {
-            conn.rollback();
-        }
-        logger.error("Errore nella creazione della prenotazione", e);
-        throw e;
-    } finally {
-        if (conn != null) {
-            conn.setAutoCommit(true);
-            conn.close();
-        }
-    }
-}
-```
-
-#### Eliminazione Prenotazione con Decremento Contatore
-```java
-@Transactional
-public void deletePrenotazione(Long id) throws SQLException {
-    Connection conn = null;
-    try {
-        conn = DatabaseConnection.getConnection();
-        conn.setAutoCommit(false);
-        
-        // 1. Recupera la prenotazione prima di eliminarla
-        Prenotazione prenotazione = prenotazioneDAO.findById(id);
-        if (prenotazione == null) {
-            throw new ResourceNotFoundException("Prenotazione non trovata");
-        }
-        
-        // 2. Recupera l'host
-        Abitazione abitazione = abitazioneDAO.findById(prenotazione.getAbitazioneId());
-        int hostId = abitazione.getHostId();
-        
-        // 3. Elimina la prenotazione (il feedback viene eliminato in cascata)
-        prenotazioneDAO.delete(id, conn);
-        
-        // 4. Decrementa il contatore prenotazioni
-        hostDAO.decrementaPrenotazioni(hostId, conn);
-        
-        // 5. Verifica se il super-host scende sotto 100 prenotazioni
-        Host host = hostDAO.findById(hostId);
-        if (host.getPrenotazioniTotali() < 100) {
-            superHostDAO.delete(hostId, conn);
-            logger.info("Host {} non è più Super-Host", hostId);
-        }
-        
-        conn.commit();
-        
-    } catch (Exception e) {
-        if (conn != null) {
-            conn.rollback();
-        }
-        throw e;
-    } finally {
-        if (conn != null) {
-            conn.setAutoCommit(true);
-            conn.close();
-        }
-    }
-}
-```
-
-### CORS Configuration (Spring Boot)
-
-```java
-@Configuration
-public class CorsConfig {
-    
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        
-        // Permetti richieste da React dev server
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000"));
-        
-        // Permetti tutti i metodi HTTP
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        // Permetti tutti gli header
-        config.setAllowedHeaders(Arrays.asList("*"));
-        
-        // Permetti credenziali
-        config.setAllowCredentials(true);
-        
-        source.registerCorsConfiguration("/api/**", config);
-        return new CorsFilter(source);
-    }
-}
-```
-
-### Logging Configuration
-
-#### logback.xml
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <!-- Console Appender -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-    
-    <!-- File Appender -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/turista-facoltoso.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/turista-facoltoso.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-    
-    <!-- Logger per il package del progetto -->
-    <logger name="com.turistafacoltoso" level="DEBUG" />
-    
-    <!-- Logger per SQL (opzionale, utile per debug)
-    <logger name="java.sql" level="DEBUG" />
-    <logger name="org.hibernate.SQL" level="DEBUG" />
-    -->
-    
-    <!-- Root logger -->
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-    </root>
-</configuration>
-```
-
-#### Utilizzo nei Service
-```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class PrenotazioneService {
-    private static final Logger logger = LoggerFactory.getLogger(PrenotazioneService.class);
-    
-    public Prenotazione create(PrenotazioneDTO dto) {
-        logger.debug("Creazione prenotazione per utente {}, abitazione {}", 
-                     dto.getUtenteId(), dto.getAbitazioneId());
-        
-        try {
-            // Validazioni
-            validatePrenotazione(dto);
-            logger.debug("Validazione prenotazione completata");
-            
-            // Creazione
-            Prenotazione prenotazione = prenotazioneDAO.create(dto.toEntity());
-            logger.info("Prenotazione {} creata con successo", prenotazione.getId());
-            
-            return prenotazione;
-        } catch (Exception e) {
-            logger.error("Errore nella creazione della prenotazione", e);
-            throw e;
-        }
-    }
-}
-```
-
-### Connection Pooling (Opzionale ma consigliato)
-
-```java
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-public class DatabaseConnection {
-    private static HikariDataSource dataSource;
-    
-    static {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://localhost:5432/turista_facoltoso");
-        config.setUsername("postgres");
-        config.setPassword("password");
-        
-        // Configurazione pool
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
-        config.setConnectionTimeout(30000);
-        config.setIdleTimeout(600000);
-        config.setMaxLifetime(1800000);
-        
-        dataSource = new HikariDataSource(config);
-    }
-    
-    public static Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
-    
-    public static void closeDataSource() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-        }
-    }
-}
-```
-
-### Exception Handling Globale
-
-```java
-@ControllerAdvice
-public class GlobalExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-    
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        logger.warn("Risorsa non trovata: {}", ex.getMessage());
-        
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.NOT_FOUND.value(),
-            "Not Found",
-            ex.getMessage(),
-            null
-        );
-        
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-    
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
-        logger.warn("Richiesta non valida: {}", ex.getMessage());
-        
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Bad Request",
-            ex.getMessage(),
-            ex.getDetails()
-        );
-        
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-    
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicate(DuplicateResourceException ex) {
-        logger.warn("Risorsa duplicata: {}", ex.getMessage());
-        
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.CONFLICT.value(),
-            "Conflict",
-            ex.getMessage(),
-            null
-        );
-        
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
-    }
-    
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        logger.error("Errore interno del server", ex);
-        
-        ErrorResponse error = new ErrorResponse(
-            LocalDateTime.now(),
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Internal Server Error",
-            "Si è verificato un errore interno. Riprova più tardi.",
-            null
-        );
-        
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-}
-```
-
-### Utility per Date
-
-```java
-public class DateUtils {
-    
-    /**
-     * Calcola il numero di giorni tra due date
-     */
-    public static long calcolaGiorni(Date inizio, Date fine) {
-        long diffInMillies = Math.abs(fine.getTime() - inizio.getTime());
-        return TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-    }
-    
-    /**
-     * Verifica se due periodi si sovrappongono
-     */
-    public static boolean periodiSiSovrappongono(
-            Date inizio1, Date fine1, 
-            Date inizio2, Date fine2) {
-        
-        return (inizio1.before(fine2) || inizio1.equals(fine2)) && 
-               (fine1.after(inizio2) || fine1.equals(inizio2));
-    }
-    
-    /**
-     * Verifica se una data è nell'ultimo mese
-     */
-    public static boolean isUltimoMese(Date data) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONTH, -1);
-        Date unMeseFa = cal.getTime();
-        return data.after(unMeseFa);
-    }
-    
-    /**
-     * Converte String a Date
-     */
-    public static Date parseDate(String dateString) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.parse(dateString);
-    }
-    
-    /**
-     * Converte Date a String
-     */
-    public static String formatDate(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(date);
-    }
-}
-```
-
-### Constants
-
-```java
-public class Constants {
-    // Soglia per diventare super-host
-    public static final int SOGLIA_SUPER_HOST = 100;
-    
-    // Punteggio minimo e massimo feedback
-    public static final int MIN_PUNTEGGIO = 1;
-    public static final int MAX_PUNTEGGIO = 5;
-    
-    // Limiti per query statistiche
-    public static final int DEFAULT_LIMIT_STATISTICHE = 10;
-    public static final int MAX_LIMIT_STATISTICHE = 50;
-    
-    // Messaggi di errore comuni
-    public static final String UTENTE_NON_TROVATO = "Utente non trovato";
-    public static final String HOST_NON_TROVATO = "Host non trovato";
-    public static final String ABITAZIONE_NON_TROVATA = "Abitazione non trovata";
-    public static final String PRENOTAZIONE_NON_TROVATA = "Prenotazione non trovata";
-    
-    // Regex
-    public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
-}
-```
-
-### DTO Mapper Pattern
-
-```java
-public class PrenotazioneMapper {
-    
-    public static PrenotazioneDTO toDTO(Prenotazione prenotazione, 
-                                        Utente utente, 
-                                        Abitazione abitazione) {
-        PrenotazioneDTO dto = new PrenotazioneDTO();
-        dto.setId(prenotazione.getId());
-        dto.setDataInizio(prenotazione.getDataInizio());
-        dto.setDataFine(prenotazione.getDataFine());
-        
-        // Mapping utente
-        UtenteDTO utenteDTO = new UtenteDTO();
-        utenteDTO.setId(utente.getId());
-        utenteDTO.setNome(utente.getNome());
-        utenteDTO.setCognome(utente.getCognome());
-        dto.setUtente(utenteDTO);
-        
-        // Mapping abitazione
-        AbitazioneDTO abitazioneDTO = new AbitazioneDTO();
-        abitazioneDTO.setId(abitazione.getId());
-        abitazioneDTO.setNome(abitazione.getNome());
-        abitazioneDTO.setPrezzo(abitazione.getPrezzo());
-        dto.setAbitazione(abitazioneDTO);
-        
-        // Calcoli
-        long giorni = DateUtils.calcolaGiorni(
-            prenotazione.getDataInizio(), 
-            prenotazione.getDataFine()
-        );
-        dto.setGiorniTotali(giorni);
-        dto.setPrezzoTotale(giorni * abitazione.getPrezzo());
-        
-        return dto;
-    }
-    
-    public static Prenotazione toEntity(PrenotazioneDTO dto) {
-        Prenotazione prenotazione = new Prenotazione();
-        prenotazione.setId(dto.getId());
-        prenotazione.setDataInizio(dto.getDataInizio());
-        prenotazione.setDataFine(dto.getDataFine());
-        prenotazione.setUtenteId(dto.getUtenteId());
-        prenotazione.setAbitazioneId(dto.getAbitazioneId());
-        return prenotazione;
-    }
-}
-```
-
-### Frontend - Axios Interceptors
-
-```javascript
-// src/services/api.js
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  timeout: 10000 // 10 secondi
-});
-
-// Request interceptor - per logging o aggiunta token
-api.interceptors.request.use(
-  config => {
-    console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
-    return config;
-  },
-  error => {
-    console.error('[API] Request error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor - per gestione errori globale
-api.interceptors.response.use(
-  response => {
-    console.log(`[API] Response:`, response.data);
-    return response;
-  },
-  error => {
-    if (error.response) {
-      // Errore dal server
-      const { status, data } = error.response;
-      console.error(`[API] Error ${status}:`, data.message);
-      
-      // Gestione errori specifici
-      switch (status) {
-        case 404:
-          console.error('Risorsa non trovata');
-          break;
-        case 409:
-          console.error('Conflitto:', data.message);
-          break;
-        case 500:
-          console.error('Errore del server');
-          break;
-      }
-    } else if (error.request) {
-      // Nessuna risposta dal server
-      console.error('[API] Nessuna risposta dal server');
-    } else {
-      // Errore nella configurazione
-      console.error('[API] Errore:', error.message);
-    }
-    
-    return Promise.reject(error);
-  }
-);
-
-export default api;
-```
-
-### Frontend - Form Validation Utils
-
-```javascript
-// src/utils/validation.js
-
-export const validateEmail = (email) => {
-  const regex = /^[A-Za-z0-9+_.-]+@(.+)$/;
-  return regex.test(email);
-};
-
-export const validateRequired = (value) => {
-  return value !== null && value !== undefined && value !== '';
-};
-
-export const validateNumber = (value, min = null, max = null) => {
-  const num = Number(value);
-  if (isNaN(num)) return false;
-  if (min !== null && num < min) return false;
-  if (max !== null && num > max) return false;
-  return true;
-};
-
-export const validateDate = (dateString) => {
-  const date = new Date(dateString);
-  return date instanceof Date && !isNaN(date);
-};
-
-export const validateDateRange = (startDate, endDate) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  return end > start;
-};
-
-export const validatePunteggio = (punteggio) => {
-  return validateNumber(punteggio, 1, 5);
-};
-
-// Validazione form utente
-export const validateUtenteForm = (formData) => {
-  const errors = {};
-  
-  if (!validateRequired(formData.nome)) {
-    errors.nome = 'Nome obbligatorio';
-  }
-  
-  if (!validateRequired(formData.cognome)) {
-    errors.cognome = 'Cognome obbligatorio';
-  }
-  
-  if (!validateRequired(formData.email)) {
-    errors.email = 'Email obbligatoria';
-  } else if (!validateEmail(formData.email)) {
-    errors.email = 'Email non valida';
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
-};
-
-// Validazione form prenotazione
-export const validatePrenotazioneForm = (formData) => {
-  const errors = {};
-  
-  if (!validateRequired(formData.utenteId)) {
-    errors.utenteId = 'Seleziona un utente';
-  }
-  
-  if (!validateRequired(formData.abitazioneId)) {
-    errors.abitazioneId = 'Seleziona un\'abitazione';
-  }
-  
-  if (!validateRequired(formData.dataInizio)) {
-    errors.dataInizio = 'Data inizio obbligatoria';
-  }
-  
-  if (!validateRequired(formData.dataFine)) {
-    errors.dataFine = 'Data fine obbligatoria';
-  }
-  
-  if (formData.dataInizio && formData.dataFine) {
-    if (!validateDateRange(formData.dataInizio, formData.dataFine)) {
-      errors.dataFine = 'La data fine deve essere successiva alla data inizio';
-    }
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
-};
-```
-
-### Frontend - Formatters
-
-```javascript
-// src/utils/formatters.js
-
-export const formatDate = (date) => {
-  if (!date) return '';
-  const d = new Date(date);
-  return d.toLocaleDateString('it-IT');
-};
-
-export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('it-IT', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(amount);
-};
-
-export const formatNumber = (num) => {
-  return new Intl.NumberFormat('it-IT').format(num);
-};
-
-export const calcola Giorni = (dataInizio, dataFine) => {
-  const start = new Date(dataInizio);
-  const end = new Date(dataFine);
-  const diffTime = Math.abs(end - start);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-};
-
-export const renderStars = (punteggio) => {
-  return '★'.repeat(punteggio) + '☆'.repeat(5 - punteggio);
-};
-```
 
 ---

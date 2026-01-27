@@ -47,3 +47,5 @@ lombok.config
 /jacoco/
 
 *.txt
+
+Suggerimenti.md
