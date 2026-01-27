@@ -111,63 +111,61 @@ Sistema di gestione backoffice per una piattaforma di affitto case vacanza. L'op
 ```
 src/
 ├── main/
-│   ├── java/
-│   │   └── com/turistafacoltoso/
-│   │       ├── TuristaFacoltosoApplication.java
-│   │       ├── model/
-│   │       │   ├── Utente.java
-│   │       │   ├── Host.java
-│   │       │   ├── Abitazione.java
-│   │       │   ├── Prenotazione.java
-│   │       │   └── Feedback.java
-│   │       ├── dao/
-│   │       │   ├── UtenteDAO.java
-│   │       │   ├── HostDAO.java
-│   │       │   ├── AbitazioneDAO.java
-│   │       │   ├── PrenotazioneDAO.java
-│   │       │   └── FeedbackDAO.java
-|   |       ├── router/
-|   |       |   └── Router.java
-│   │       ├── service/
-│   │       │   ├── UtenteService.java
-│   │       │   ├── HostService.java
-│   │       │   ├── AbitazioneService.java
-│   │       │   ├── PrenotazioneService.java
-│   │       │   ├── FeedbackService.java
-│   │       │   └── StatisticheService.java
-│   │       ├── controller/
-│   │       │   ├── UtenteController.java
-│   │       │   ├── HostController.java
-│   │       │   ├── AbitazioneController.java
-│   │       │   ├── PrenotazioneController.java
-│   │       │   ├── FeedbackController.java
-│   │       │   └── StatisticheController.java
-│   │       ├── exception/
-│   │       │   ├── ResourceNotFoundException.java
-│   │       │   ├── BadRequestException.java
-│   │       │   ├── DuplicateResourceException.java
-│   │       │   └── GlobalExceptionHandler.java
-│   │       └── util/
-│   │           ├── DatabaseConnection.java
-│   │           └── DateUtils.java
-│   └── resources/
-│       ├── application.properties
-│       ├── schema.sql
-│       └── data.sql
-```
-
+│ ├── java/
+│ │ └── com/giuseppe_tesse/turista/
+│ │ |   ├── LuxuryTouristApplication.java
+│ │ ├── model/
+│ │ │ ├── User.java
+│ │ │ ├── Host.java
+│ │ │ ├── Residence.java
+│ │ │ ├── Booking.java
+│ │ │ └── Feedback.java
+│ │ ├── dao/
+│ │ │ ├── UserDAO.java
+│ │ │ ├── HostDAO.java
+│ │ │ ├── ResidenceDAO.java
+│ │ │ ├── BookingDAO.java
+│ │ │ └── FeedbackDAO.java
+│ │ ├── router/
+│ │ │ └── Router.java
+│ │ ├── service/
+│ │ │ ├── UserService.java
+│ │ │ ├── HostService.java
+│ │ │ ├── ResidenceService.java
+│ │ │ ├── BookingService.java
+│ │ │ ├── FeedbackService.java
+│ │ │ └── StatisticsService.java
+│ │ ├── controller/
+│ │ │ ├── UserController.java
+│ │ │ ├── HostController.java
+│ │ │ ├── ResidenceController.java
+│ │ │ ├── BookingController.java
+│ │ │ ├── FeedbackController.java
+│ │ │ └── StatisticsController.java
+│ │ ├── exception/
+│ │ │ ├── ResourceNotFoundException.java
+│ │ │ ├── BadRequestException.java
+│ │ │ ├── DuplicateResourceException.java
+│ │ │ └── GlobalExceptionHandler.java
+│ │ └── util/
+│ │ ├── DatabaseConnection.java
+│ │ └── DateUtils.java
+│ └── resources/
+│ ├── application.properties
+│ ├── schema.sql
+│ └── data.sql
 ### Pattern Utilizzati
 
 #### 1. DAO Pattern
 Separazione logica di accesso ai dati dal business logic.
 
 ```java
-public interface UtenteDAO {
-    Utente create(Utente utente);
-    Utente findById(Long id);
-    Utente findByEmail(String email);
-    List<Utente> findAll();
-    Utente update(Utente utente);
+public interface UserDAO {
+    User create(User user);
+    User findById(Long id);
+    User findByEmail(String email);
+    List<User> findAll();
+    User update(User user);
     void delete(Long id);
 }
 ```
@@ -176,11 +174,11 @@ public interface UtenteDAO {
 Logica di business centralizzata.
 
 ```java
-public class PrenotazioneService {
-    private PrenotazioneDAO prenotazioneDAO;
-    private AbitazioneDAO abitazioneDAO;
+public class BookingService {
+    private BookingDAO bookingDAO;
+    private ResidenceDAO residenceDAO;
     
-    public Prenotazione createPrenotazione(PrenotazioneDTO dto) {
+    public Booking createBooking(BookingDAOImpl booking) {
         // Validazione disponibilità
         // Controllo sovrapposizioni
         // Aggiornamento contatore super-host
@@ -198,139 +196,145 @@ public class PrenotazioneService {
 
 ```mermaid
 erDiagram
-    UTENTE {
-        Long id PK
-        string nome
-        string cognome
-        string email
-        string password
-        string indirizzo
-        date data_registrazione
-    }
+    Users (
+      id SERIAL PRIMARY KEY,
+      first_name VARCHAR(255),
+      last_name VARCHAR(255),
+      email VARCHAR(255),
+      password VARCHAR(255),
+      address VARCHAR(255),
+      registration_date DATE
+    )
 
-    HOST {
-        Long utente_id PK, FK
-        string codice_host
-        int prenotazioni_totali
-        date data_registrazione
-    }
+    Hosts (
+    user_id SERIAL PRIMARY KEY REFERENCES Users(id),
+    host_code VARCHAR(50),
+    total_bookings INT,
+    registration_date DATE
+    );
 
-    ABITAZIONE {
-        Long id PK
-        string nome
-        string indirizzo
-        int numero_locali
-        int numero_posti_letto
-        int piano
-        decimal prezzo
-        date disponibilita_inizio
-        date disponibilita_fine
-        Long host_id FK
-    }
 
-    PRENOTAZIONE {
-        Long id PK
-        date data_inizio
-        date data_fine
-        Long abitazione_id FK
-        Long utente_id FK
-    }
+    Residences (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255),
+      address VARCHAR(255),
+      number_of_rooms INT,
+      number_of_beds INT,
+      floor INT,
+      price DECIMAL(10,2),
+      availability_start DATE,
+      availability_end DATE,
+      host_id BIGINT REFERENCES Hosts(user_id)
+);
 
-    FEEDBACK {
-        Long id PK
-        string titolo
-        string testo
-        int punteggio
-        Long prenotazione_id FK
-        Long utente_id FK
-    }
 
-    UTENTE ||--o{ PRENOTAZIONE : effettua
-    ABITAZIONE ||--o{ PRENOTAZIONE : viene_prenotata
-    HOST ||--o{ ABITAZIONE : carica
-    PRENOTAZIONE ||--o{ FEEDBACK : genera
-    UTENTE ||--o{ FEEDBACK : lascia
+    Bookings (
+      id SERIAL PRIMARY KEY,
+      start_date DATE,
+      end_date DATE,
+      residence_id INT REFERENCES Residences(id),
+      user_id INT REFERENCES Users(id)
+);
 
-    UTENTE ||--|| HOST : "is a"
-    HOST ||--|| SUPER_HOST : "is a"
+
+    Feedbacks (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255),
+      text TEXT,
+      rating INT,
+      booking_id INT REFERENCES Bookings(id),
+      user_id INT REFERENCES Users(id)
+);
+
+
+    Users ||--o{ Bookings : makes
+    Residences ||--o{ Bookings : is_booked
+    Hosts ||--o{ Residences : manages
+    Bookings ||--o{ Feedbacks : generates
+    Users ||--o{ Feedbacks : leaves
+
+    Users ||--|| Hosts : "is a"
+    Hosts ||--|| SuperHosts : "is a"
 ```
 
-### Descrizione Entità
+### Entity Descriptions
 
-#### UTENTE
-- **id**: SERIAL, chiave primaria
-- **nome**: VARCHAR(100), NOT NULL
-- **cognome**: VARCHAR(100), NOT NULL
+#### USERS
+- **id**: SERIAL, primary key
+- **first_name**: VARCHAR(100), NOT NULL
+- **last_name**: VARCHAR(100), NOT NULL
 - **email**: VARCHAR(150), UNIQUE, NOT NULL
-- **indirizzo**: VARCHAR(255), nullable
+- **address**: VARCHAR(255), nullable
 
-**Relazioni**: 
-- Un utente può diventare host (1:1 opzionale con HOST)
-- Un utente può effettuare molte prenotazioni (1:N con PRENOTAZIONE)
-- Un utente può lasciare molti feedback (1:N con FEEDBACK)
-
-#### HOST
-- **utente_id**: INT, chiave primaria e foreign key → UTENTE(id)
-- **codice_host**: VARCHAR(50), UNIQUE, NOT NULL
-- **prenotazioni_totali**: INT, DEFAULT 0
-- **data_registrazione**: DATE
-- **isSuperHost**: BOOLEAN DEFAULT False
-
-**Relazioni**:
-- Un host è anche un utente (1:1 con UTENTE)
-- Un host può avere molte abitazioni (1:N con ABITAZIONE)
-- Un host può diventare super-host (1:1 opzionale con SUPER_HOST)
-
-**Note**: Questa è una tabella di specializzazione. Un record esiste solo se l'utente è un host.
-
-
-#### ABITAZIONE
-- **id**: SERIAL, chiave primaria
-- **nome**: VARCHAR(100), NOT NULL
-- **indirizzo**: VARCHAR(255), NOT NULL
-- **numero_locali**: INT
-- **numero_posti_letto**: INT
-- **piano**: INT
-- **prezzo**: DECIMAL(8,2)
-- **disponibilita_inizio**: DATE
-- **disponibilita_fine**: DATE
-- **host_id**: INT, FK → HOST(utente_id), NOT NULL
-
-**Relazioni**:
-- Un'abitazione appartiene a un solo host (N:1 con HOST)
-- Un'abitazione può avere molte prenotazioni (1:N con PRENOTAZIONE)
-
-#### PRENOTAZIONE
-- **id**: SERIAL, chiave primaria
-- **data_inizio**: DATE, NOT NULL
-- **data_fine**: DATE, NOT NULL
-- **abitazione_id**: INT, FK → ABITAZIONE(id)
-- **utente_id**: INT, FK → UTENTE(id)
-
-**Relazioni**:
-- Una prenotazione riguarda un'abitazione (N:1 con ABITAZIONE)
-- Una prenotazione è effettuata da un utente (N:1 con UTENTE)
-- Una prenotazione può avere un feedback (1:1 opzionale con FEEDBACK)
-
-**Vincoli**:
-- data_fine deve essere successiva a data_inizio
-- Non possono esistere prenotazioni sovrapposte per la stessa abitazione
-
-#### FEEDBACK
-- **id**: SERIAL, chiave primaria
-- **titolo**: VARCHAR(100)
-- **testo**: TEXT
-- **punteggio**: INT, CHECK (punteggio BETWEEN 1 AND 5)
-- **prenotazione_id**: INT, FK → PRENOTAZIONE(id)
-- **utente_id**: INT, FK → UTENTE(id)
-
-**Relazioni**:
-- Un feedback è collegato a una prenotazione (N:1 con PRENOTAZIONE)
-- Un feedback è lasciato da un utente (N:1 con UTENTE)
-
-**Note**: Il feedback si riferisce al proprietario (host) dell'abitazione prenotata. L'host viene identificato tramite la relazione: FEEDBACK → PRENOTAZIONE → ABITAZIONE → HOST.
+**Relationships**: 
+- A user can become a host (1:1 optional with HOSTS)
+- A user can make many bookings (1:N with BOOKINGS)
+- A user can leave many feedbacks (1:N with FEEDBACKS)
 
 ---
+
+#### HOSTS
+- **user_id**: INT, primary key and foreign key → USERS(id)
+- **host_code**: VARCHAR(50), UNIQUE, NOT NULL
+- **total_bookings**: INT, DEFAULT 0
+- **registration_date**: DATE
+- **is_super_host**: BOOLEAN DEFAULT False
+
+**Relationships**:
+- A host is also a user (1:1 with USERS)
+- A host can have many residences (1:N with RESIDENCES)
+- A host can become a super-host (1:1 optional with SUPER_HOSTS)
+
+
+---
+
+#### RESIDENCES
+- **id**: SERIAL, primary key
+- **name**: VARCHAR(100), NOT NULL
+- **address**: VARCHAR(255), NOT NULL
+- **number_of_rooms**: INT
+- **number_of_beds**: INT
+- **floor**: INT
+- **price**: DECIMAL(8,2)
+- **availability_start**: DATE
+- **availability_end**: DATE
+- **host_id**: INT, FK → HOSTS(user_id), NOT NULL
+
+**Relationships**:
+- A residence belongs to a single host (N:1 with HOSTS)
+- A residence can have many bookings (1:N with BOOKINGS)
+
+---
+
+#### BOOKINGS
+- **id**: SERIAL, primary key
+- **start_date**: DATE, NOT NULL
+- **end_date**: DATE, NOT NULL
+- **residence_id**: INT, FK → RESIDENCES(id)
+- **user_id**: INT, FK → USERS(id)
+
+**Relationships**:
+- A booking concerns a residence (N:1 with RESIDENCES)
+- A booking is made by a user (N:1 with USERS)
+- A booking can have a feedback (1:1 optional with FEEDBACKS)
+
+**Constraints**:
+- `end_date` must be after `start_date`
+- Overlapping bookings for the same residence are not allowed
+
+---
+
+#### FEEDBACKS
+- **id**: SERIAL, primary key
+- **title**: VARCHAR(100)
+- **text**: TEXT
+- **rating**: INT, CHECK (rating BETWEEN 1 AND 5)
+- **booking_id**: INT, FK → BOOKINGS(id)
+- **user_id**: INT, FK → USERS(id)
+
+**Relationships**:
+- A feedback is linked to a booking (N:1 with BOOKINGS)
+- A feedback is left by a user (N:1 with USERS)
 
 ## API Backend
 
@@ -349,7 +353,7 @@ http://localhost:8080/api
 
 ### 1. Utenti
 
-#### GET /utenti
+#### GET /users
 Ottiene tutti gli utenti
 
 **Response 200 OK:**
@@ -357,33 +361,28 @@ Ottiene tutti gli utenti
 [
   {
     "id": 1,
-    "nome": "Mario",
-    "cognome": "Rossi",
+    "first_name": "Mario",
+    "last_name": "Rossi",
     "email": "mario.rossi@email.com",
-    "indirizzo": "Via Roma 1, Milano",
-    "isHost": false,
-    "isSuperHost": false
+    "address": "Via Roma 1, Milan",
   },
   {
     "id": 2,
-    "nome": "Giovanni",
-    "cognome": "Bianchi",
+    "first_name": "Giovanni",
+    "last_name": "Bianchi",
     "email": "giovanni.bianchi@email.com",
-    "indirizzo": "Via Venezia 20, Venezia",
-    "isHost": true,
-    "isSuperHost": true,
-    "codiceHost": "HOST001",
-    "prenotazioniTotali": 150
+    "address": "Via Venezia 20, Venice",
+    "host_code": "HOST001",
+    "total_bookings": 150
   }
 ]
 ```
-
-#### GET /utenti/{id}
+#### GET /users/{id}
 Ottiene un utente specifico
 
 **Response 200 OK / 404 Not Found**
 
-#### POST /utenti
+#### POST /user
 Crea un nuovo utente
 
 **Request Body:**
@@ -392,7 +391,7 @@ Crea un nuovo utente
   "nome": "Mario",
   "cognome": "Rossi",
   "email": "mario.rossi@email.com",
-  "indirizzo": "Via Roma 1, Milano"
+  "address": "Via Roma 1, Milano"
 }
 ```
 
@@ -403,8 +402,7 @@ Crea un nuovo utente
   "nome": "Mario",
   "cognome": "Rossi",
   "email": "mario.rossi@email.com",
-  "indirizzo": "Via Roma 1, Milano",
-  "isHost": false
+  "address": "Via Roma 1, Milano",
 }
 ```
 
@@ -413,37 +411,37 @@ Crea un nuovo utente
 - Email univoca
 - Nome e cognome obbligatori
 
-#### PUT /utenti/{id}
+#### PUT /users/{id}
 Aggiorna un utente
 
 **Request Body:** Stesso formato del POST
 
 **Response 200 OK / 404 Not Found**
 
-#### DELETE /utenti/{id}
+#### DELETE /users/{id}
 Elimina un utente
 
 **Response 204 No Content / 404 Not Found**
 
-**Note:** L'eliminazione è in cascata (elimina anche HOST, SUPER_HOST, prenotazioni, feedback)
 
-#### GET /utenti/{id}/ultima-prenotazione
+#### GET /users/{id}/last-booking
 Ottiene l'ultima prenotazione di un utente
 
 **Response 200 OK:**
 ```json
 {
   "id": 15,
-  "dataInizio": "2025-02-10",
-  "dataFine": "2025-02-15",
-  "abitazione": {
+  "start_date": "2025-02-10",
+  "end_date": "2025-02-15",
+  "residence": {
     "id": 3,
-    "nome": "Appartamento Vista Mare",
-    "indirizzo": "Via Mare 10, Rimini"
+    "name": "Sea View Apartment",
+    "address": "Via Mare 10, Rimini"
   },
-  "giorniTotali": 5,
-  "prezzoTotale": 750.00
+  "total_days": 5,
+  "total_price": 750.00
 }
+
 ```
 
 **Response 404:** Se l'utente non ha prenotazioni
@@ -452,24 +450,25 @@ Ottiene l'ultima prenotazione di un utente
 
 ### 2. Host
 
-#### GET /host
+#### GET /hosts
 Ottiene tutti gli host
 
 **Response 200 OK:**
 ```json
 [
   {
-    "utenteId": 2,
-    "nome": "Giovanni",
-    "cognome": "Bianchi",
+    "user_id": 2,
+    "first_name": "Giovanni",
+    "last_name": "Bianchi",
     "email": "giovanni.bianchi@email.com",
-    "codiceHost": "HOST001",
-    "numeroAbitazioni": 5,
-    "numeroPrenotazioni": 150,
-    "isSuperHost": true,
-    "dataRegistrazioneSuperHost": "2024-06-15"
+    "host_code": "HOST001",
+    "number_of_residences": 5,
+    "total_bookings": 150,
+    "is_super_host": true,
+    "super_host_registration_date": "2024-06-15"
   }
 ]
+
 ```
 
 #### POST /host
@@ -478,8 +477,8 @@ Promuove un utente a host
 **Request Body:**
 ```json
 {
-  "utenteId": 1,
-  "codiceHost": "HOST005"
+  "user_id ": 1,
+  "host_code ": "HOST005"
 }
 ```
 
@@ -490,24 +489,25 @@ Promuove un utente a host
 - L'utente non deve essere già un host
 - Il codice host deve essere univoco
 
-#### GET /host/super-host
+#### GET /hosts/super-hosts
 Ottiene tutti i super-host (≥100 prenotazioni)
 
 **Response 200 OK:**
 ```json
 [
   {
-    "hostId": 2,
-    "nome": "Giovanni Bianchi",
-    "codiceHost": "HOST001",
-    "prenotazioniTotali": 150,
-    "dataRegistrazione": "2024-06-15",
-    "numeroAbitazioni": 5
+    "host_id": 2,
+    "full_name": "Giovanni Bianchi",
+    "host_code": "HOST001",
+    "total_bookings": 150,
+    "registration_date": "2024-06-15",
+    "number_of_residences": 5
   }
 ]
+
 ```
 
-#### GET /host/{codiceHost}/abitazioni
+#### GET /host/{codiceHost}/residences
 Ottiene tutte le abitazioni di un host specifico
 
 **Response 200 OK:** Array di abitazioni (vedi sezione Abitazioni)
@@ -516,12 +516,12 @@ Ottiene tutte le abitazioni di un host specifico
 
 ### 3. Abitazioni
 
-#### GET /abitazioni
+#### GET /residences
 Ottiene tutte le abitazioni
 
 **Query Parameters (opzionali):**
-- `hostId`: filtra per ID host
-- `codiceHost`: filtra per codice host
+- `host_Id`: filtra per ID host
+- `host_code`: filtra per codice host
 - `minPrezzo`: prezzo minimo
 - `maxPrezzo`: prezzo massimo
 - `minPostiLetto`: numero minimo posti letto
@@ -531,44 +531,46 @@ Ottiene tutte le abitazioni
 [
   {
     "id": 1,
-    "nome": "Villa sul Lago",
-    "indirizzo": "Via del Lago 5, Como",
-    "numeroLocali": 5,
-    "numeroPostiLetto": 8,
-    "piano": 0,
-    "prezzo": 250.00,
-    "disponibilitaInizio": "2025-01-01",
-    "disponibilitaFine": "2025-12-31",
+    "name": "Lake Villa",
+    "address": "Via del Lago 5, Como",
+    "number_of_rooms": 5,
+    "number_of_beds": 8,
+    "floor": 0,
+    "price": 250.00,
+    "availability_start": "2025-01-01",
+    "availability_end": "2025-12-31",
     "host": {
       "id": 2,
-      "nome": "Giovanni Bianchi",
-      "codiceHost": "HOST001"
+      "full_name": "Giovanni Bianchi",
+      "host_code": "HOST001"
     }
   }
 ]
+
 ```
 
-#### GET /abitazioni/{id}
+#### GET /residences/{id}
 Ottiene un'abitazione specifica
 
 **Response 200 OK / 404 Not Found**
 
-#### POST /abitazioni
+#### POST /residences
 Crea una nuova abitazione
 
 **Request Body:**
 ```json
 {
-  "nome": "Villa sul Lago",
-  "indirizzo": "Via del Lago 5, Como",
-  "numeroLocali": 5,
-  "numeroPostiLetto": 8,
-  "piano": 0,
-  "prezzo": 250.00,
-  "disponibilitaInizio": "2025-01-01",
-  "disponibilitaFine": "2025-12-31",
-  "hostId": 2
+  "name": "Lake Villa",
+  "address": "Via del Lago 5, Como",
+  "number_of_rooms": 5,
+  "number_of_beds": 8,
+  "floor": 0,
+  "price": 250.00,
+  "availability_start": "2025-01-01",
+  "availability_end": "2025-12-31",
+  "host_id": 2
 }
+
 ```
 
 **Response 201 Created**
@@ -578,14 +580,14 @@ Crea una nuova abitazione
 - disponibilitaFine > disponibilitaInizio
 - Prezzo > 0
 
-#### PUT /abitazioni/{id}
+#### PUT /residences/{id}
 Aggiorna un'abitazione
 
 **Request Body:** Stesso formato del POST
 
 **Response 200 OK / 404 Not Found**
 
-#### DELETE /abitazioni/{id}
+#### DELETE /residences/{id}
 Elimina un'abitazione
 
 **Response 204 No Content / 404 Not Found**
@@ -594,7 +596,7 @@ Elimina un'abitazione
 
 ### 4. Prenotazioni
 
-#### GET /prenotazioni
+#### GET /bookings 
 Ottiene tutte le prenotazioni
 
 **Query Parameters (opzionali):**
@@ -609,41 +611,42 @@ Ottiene tutte le prenotazioni
 [
   {
     "id": 1,
-    "dataInizio": "2025-02-01",
-    "dataFine": "2025-02-05",
-    "utente": {
+    "start_date": "2025-02-01",
+    "end_date": "2025-02-05",
+    "user": {
       "id": 1,
-      "nome": "Mario",
-      "cognome": "Rossi"
+      "first_name": "Mario",
+      "last_name": "Rossi"
     },
-    "abitazione": {
+    "residence": {
       "id": 3,
-      "nome": "Appartamento Centro",
-      "indirizzo": "Via Milano 5, Roma"
+      "name": "City Apartment",
+      "address": "Via Milano 5, Rome"
     },
-    "giorniTotali": 4,
-    "prezzoTotale": 600.00,
-    "hasFeedback": false
+    "total_days": 4,
+    "total_price": 600.00,
   }
 ]
+
 ```
 
-#### GET /prenotazioni/{id}
+#### GET /booking/{id}
 Ottiene una prenotazione specifica
 
 **Response 200 OK / 404 Not Found**
 
-#### POST /prenotazioni
+#### POST /bookings
 Crea una nuova prenotazione
 
 **Request Body:**
 ```json
 {
-  "dataInizio": "2025-02-01",
-  "dataFine": "2025-02-05",
-  "utenteId": 1,
-  "abitazioneId": 3
+  "start_date": "2025-02-01",
+  "end_date": "2025-02-05",
+  "user_id": 1,
+  "residence_id": 3
 }
+
 ```
 
 **Response 201 Created**
@@ -659,7 +662,7 @@ Crea una nuova prenotazione
 - Incrementa il contatore prenotazioni_totali del super-host (se esiste)
 - Se l'host raggiunge 100 prenotazioni, viene promosso a super-host automaticamente
 
-#### PUT /prenotazioni/{id}
+#### PUT /bookings/{id}
 Aggiorna una prenotazione
 
 **Request Body:** Stesso formato del POST
@@ -668,7 +671,7 @@ Aggiorna una prenotazione
 
 **Note:** Esegue le stesse validazioni del POST
 
-#### DELETE /prenotazioni/{id}
+#### DELETE /bookings/{id}
 Elimina una prenotazione
 
 **Response 204 No Content / 404 Not Found**
@@ -693,24 +696,25 @@ Ottiene tutti i feedback
 [
   {
     "id": 1,
-    "titolo": "Soggiorno fantastico",
-    "testo": "Ottima esperienza, host disponibile e casa pulitissima",
-    "punteggio": 5,
-    "utente": {
+    "title": "Fantastic Stay",
+    "text": "Great experience, host was helpful and the house was very clean",
+    "rating": 5,
+    "user": {
       "id": 1,
-      "nome": "Mario Rossi"
+      "full_name": "Mario Rossi"
     },
-    "prenotazione": {
+    "booking": {
       "id": 10,
-      "abitazione": "Villa sul Lago"
+      "residence": "Lake Villa"
     },
     "host": {
       "id": 2,
-      "nome": "Giovanni Bianchi",
-      "codiceHost": "HOST001"
+      "full_name": "Giovanni Bianchi",
+      "host_code": "HOST001"
     }
   }
 ]
+
 ```
 
 #### GET /feedback/{id}
@@ -724,12 +728,13 @@ Crea un nuovo feedback
 **Request Body:**
 ```json
 {
-  "titolo": "Ottimo soggiorno",
-  "testo": "Casa bellissima e host molto disponibile",
-  "punteggio": 5,
-  "prenotazioneId": 10,
-  "utenteId": 1
+  "title": "Great Stay",
+  "text": "Beautiful house and very helpful host",
+  "rating": 5,
+  "booking_id": 10,
+  "user_id": 1
 }
+
 ```
 
 **Response 201 Created**
@@ -747,10 +752,11 @@ Aggiorna un feedback
 **Request Body:**
 ```json
 {
-  "titolo": "Soggiorno eccellente",
-  "testo": "Esperienza da ripetere assolutamente",
-  "punteggio": 5
+  "title": "Excellent Stay",
+  "text": "Experience definitely worth repeating",
+  "rating": 5
 }
+
 ```
 
 **Response 200 OK / 404 Not Found**

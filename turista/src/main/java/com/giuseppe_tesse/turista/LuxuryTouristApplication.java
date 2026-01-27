@@ -1,6 +1,6 @@
 package com.giuseppe_tesse.turista;
 
-public class Main {
+public class LuxuryTouristApplication {
     public static void main(String[] args) {
         System.out.println("Hello world!");
     }
