@@ -21,7 +21,13 @@ public class DateConverter {
 
     }
 
+    public static Timestamp convertTimestampFromLocalDateTime(LocalDateTime ldt) {
+    return Timestamp.valueOf(ldt);
+}
+
+
     public static Date toSqlDate(LocalDate localDate) {
         return Date.valueOf(localDate);
     }
+
 }

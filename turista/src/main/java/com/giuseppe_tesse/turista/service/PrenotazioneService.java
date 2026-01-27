@@ -29,7 +29,7 @@ public class PrenotazioneService {
             abitazione.getId(), utente.getId(), dataInizio, dataFine);
 
     List<Prenotazione> esistenti =
-            prenotazioneDAO.findByPrenotazioneId(abitazione.getId())
+            prenotazioneDAO.findByAbitazioneId(abitazione.getId())
             .orElseThrow(() -> new PrenotazioneNotFoundException(abitazione.getId()));
 
     for (Prenotazione p : esistenti) {
@@ -63,7 +63,7 @@ public class PrenotazioneService {
 
     public List<Prenotazione> getPrenotazioniByAbitazioneId(Long abitazioneId) {
         log.info("Recupero delle prenotazioni per l'abitazione con ID: {}", abitazioneId);
-        return prenotazioneDAO.findByPrenotazioneId(abitazioneId)
+        return prenotazioneDAO.findByAbitazioneId(abitazioneId)
             .orElseThrow(() -> new PrenotazioneNotFoundException(abitazioneId));
     }
 

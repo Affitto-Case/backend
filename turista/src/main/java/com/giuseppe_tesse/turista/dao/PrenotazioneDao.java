@@ -13,7 +13,7 @@ public interface PrenotazioneDAO {
 
     Optional<Prenotazione> findById(Long id);
 
-    Optional<List<Prenotazione>> findByPrenotazioneId(Long abitazioneId);
+    Optional<List<Prenotazione>> findByAbitazioneId(Long abitazioneId);
 
     List<Prenotazione> findAll();
 
