@@ -61,12 +61,6 @@ public class PrenotazioneService {
                 .orElseThrow(() -> new PrenotazioneNotFoundException(id));
     }
 
-    public Abitazione getAbitazioneById(Long abitazioneId) {
-        log.info("Recupero dell'abitazione con ID: {}", abitazioneId);
-        return prenotazioneDAO.findByAbitazioneId(abitazioneId)
-                .orElseThrow(() -> new AbitazioneNotFoundException(abitazioneId));
-    }
-
     public List<Prenotazione> getPrenotazioniByAbitazioneId(Long abitazioneId) {
         log.info("Recupero delle prenotazioni per l'abitazione con ID: {}", abitazioneId);
         return prenotazioneDAO.findByPrenotazioneId(abitazioneId)

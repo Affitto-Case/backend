@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Utente {
-    @Getter private Long id;
+    @Getter @Setter private Long id;
     @Getter @Setter private String nome;
     @Getter @Setter private String cognome;
     @Getter @Setter private String email;

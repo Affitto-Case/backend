@@ -44,12 +44,9 @@ public class AbitazioneService {
         return abitazioneDAO.findAll();
     }
 
-    public Abitazione getAbitazioneByProprietario(Long proprietario_id) {
+    public List<Abitazione> getAbitazioneByProprietario(Long proprietario_id) {
         log.info("Ricerca abitazione per ID proprietario: {}", proprietario_id);
-        return abitazioneDAO.findByProprietario(proprietario_id).orElseThrow(() -> {
-            log.warn("Abitazione non trovata con ID proprietario: {}", proprietario_id);
-            return new AbitazioneNotFoundException("Abitazione non trovata con ID proprietario: " + proprietario_id);
-        });
+        return abitazioneDAO.findByProprietario(proprietario_id);
     }
 
     public Abitazione getAbitazioneById(Long id) {

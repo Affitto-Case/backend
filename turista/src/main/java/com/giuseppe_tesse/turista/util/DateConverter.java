@@ -20,4 +20,8 @@ public class DateConverter {
         return ts.toLocalDateTime();
 
     }
+
+    public static Date toSqlDate(LocalDate localDate) {
+        return Date.valueOf(localDate);
+    }
 }

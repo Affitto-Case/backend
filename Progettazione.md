@@ -126,6 +126,8 @@ src/
 │   │       │   ├── AbitazioneDAO.java
 │   │       │   ├── PrenotazioneDAO.java
 │   │       │   └── FeedbackDAO.java
+|   |       ├── router/
+|   |       |   └── Router.java
 │   │       ├── service/
 │   │       │   ├── UtenteService.java
 │   │       │   ├── HostService.java
@@ -1381,23 +1383,23 @@ CREATE INDEX idx_feedback_punteggio ON feedback(punteggio);
 
 ```sql
 -- Inserimento utenti normali
-INSERT INTO utente (nome, cognome, email, indirizzo) VALUES
-('Mario', 'Rossi', 'mario.rossi@email.com', 'Via Roma 1, Milano'),
-('Laura', 'Bianchi', 'laura.bianchi@email.com', 'Corso Italia 25, Roma'),
-('Paolo', 'Verdi', 'paolo.verdi@email.com', 'Via Garibaldi 10, Napoli'),
-('Giulia', 'Neri', 'giulia.neri@email.com', 'Piazza Duomo 5, Firenze'),
-('Andrea', 'Blu', 'andrea.blu@email.com', 'Via Torino 15, Bologna'),
-('Francesca', 'Gialli', 'francesca.gialli@email.com', 'Via Dante 8, Genova'),
-('Luca', 'Viola', 'luca.viola@email.com', 'Corso Vittorio 12, Torino'),
-('Sara', 'Arancio', 'sara.arancio@email.com', 'Via Manzoni 20, Palermo');
+INSERT INTO utente (nome, cognome, email,password, indirizzo) VALUES
+('Mario', 'Rossi', 'mario.rossi@email.com','Password1', 'Via Roma 1, Milano'),
+('Laura', 'Bianchi', 'laura.bianchi@email.com','Password2', 'Corso Italia 25, Roma'),
+('Paolo', 'Verdi', 'paolo.verdi@email.com', 'Password3','Via Garibaldi 10, Napoli'),
+('Giulia', 'Neri', 'giulia.neri@email.com','Password4', 'Piazza Duomo 5, Firenze'),
+('Andrea', 'Blu', 'andrea.blu@email.com','Password5', 'Via Torino 15, Bologna'),
+('Francesca', 'Gialli', 'francesca.gialli@email.com','Password6', 'Via Dante 8, Genova'),
+('Luca', 'Viola', 'luca.viola@email.com','Password7', 'Corso Vittorio 12, Torino'),
+('Sara', 'Arancio', 'sara.arancio@email.com','Password8', 'Via Manzoni 20, Palermo');
 
 -- Inserimento utenti che diventeranno host
-INSERT INTO utente (nome, cognome, email, indirizzo) VALUES
-('Giovanni', 'Ferrari', 'giovanni.ferrari@email.com', 'Via Venezia 20, Venezia'),
-('Marco', 'Colombo', 'marco.colombo@email.com', 'Via Milano 8, Como'),
-('Elena', 'Ricci', 'elena.ricci@email.com', 'Via Napoli 12, Amalfi'),
-('Chiara', 'Russo', 'chiara.russo@email.com', 'Via Firenze 30, Siena'),
-('Roberto', 'Costa', 'roberto.costa@email.com', 'Via Genova 15, Portofino');
+INSERT INTO utente (nome, cognome, email,password, indirizzo) VALUES
+('Giovanni', 'Ferrari', 'giovanni.ferrari@email.com','Password9', 'Via Venezia 20, Venezia'),
+('Marco', 'Colombo', 'marco.colombo@email.com','Password10', 'Via Milano 8, Como'),
+('Elena', 'Ricci', 'elena.ricci@email.com','Password11', 'Via Napoli 12, Amalfi'),
+('Chiara', 'Russo', 'chiara.russo@email.com','Password12', 'Via Firenze 30, Siena'),
+('Roberto', 'Costa', 'roberto.costa@email.com','Password3', 'Via Genova 15, Portofino');
 
 -- Promozione utenti a host
 INSERT INTO host (utente_id, codice_host) VALUES

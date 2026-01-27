@@ -14,7 +14,7 @@ public interface AbitazioneDAO{
 
     List<Abitazione> findAll();
 
-    Optional<Abitazione> findByProprietario(Long proprietario_id);
+    List<Abitazione> findByProprietario(Long proprietario_id);
 
     Optional<Abitazione> findById(Long id);
     

@@ -10,7 +10,7 @@ import io.javalin.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class UtenteController {
+public class UtenteController implements Controller {
 
     private final UtenteService utenteService;
 
@@ -18,7 +18,7 @@ public class UtenteController {
         this.utenteService = utenteService;
     }
 
-
+    @Override
     public void registerRoutes(Javalin app) {
         app.post("/api/v1/users", this::createUtente);
         app.get("/api/v1/users/:id", this::getUtenteById);
@@ -52,7 +52,7 @@ public class UtenteController {
         }
     }
 
-// ==================== READ ====================
+
 
     private void getUtenteById(Context ctx){
         log.info("GET /api/v1/users/{} - Richiesta recupero utente per ID", ctx.pathParam("id"));
