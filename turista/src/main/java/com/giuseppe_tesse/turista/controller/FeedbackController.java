@@ -1,4 +1,5 @@
 package com.giuseppe_tesse.turista.controller;
+
 import com.giuseppe_tesse.turista.model.Feedback;
 import com.giuseppe_tesse.turista.service.FeedbackService;
 import com.giuseppe_tesse.turista.exception.FeedbackNotFoundException;
@@ -6,10 +7,13 @@ import com.giuseppe_tesse.turista.exception.FeedbackNotFoundException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
-public class FeedbackController implements Controller{
+public class FeedbackController implements Controller {
 
     private final FeedbackService feedbackService;
 
@@ -19,154 +23,160 @@ public class FeedbackController implements Controller{
 
     @Override
     public void registerRoutes(Javalin app) {
-        app.post("/api/v1/feedbacks", this::insertFeedback);
-        app.get("/api/v1/feedbacks/:id", this::getFeedbackById);
+        app.post("/api/v1/feedbacks", this::createFeedback);
+        app.get("/api/v1/feedbacks/{id}", this::getFeedbackById);
         app.get("/api/v1/feedbacks", this::getAllFeedbacks);
-        app.get("/api/v1/feedbacks/utente/:utente_id", this::getFeedbacksByUtente);
-        app.get("/api/v1/feedbacks/struttura/:prenotazione_id", this::getFeedbacksByStruttura);
-        app.get("/api/v1/feedbacks/utente/:utente_id/prenotazione/:prenotazione_id", this::getFeedbackByUtenteAndPrenotazione);
-        app.put("/api/v1/feedbacks/:id", this::updateFeedbackComment);
+        app.get("/api/v1/feedbacks/user/{userId}", this::getFeedbacksByUser);
+        app.get("/api/v1/feedbacks/booking/{bookingId}", this::getFeedbacksByBooking); // Rinominato endpoint
+        app.get("/api/v1/feedbacks/user/{userId}/booking/{bookingId}", this::getFeedbackByUserAndBooking); // Rinominato endpoint
+        app.put("/api/v1/feedbacks/{id}", this::updateFeedbackComment);
         app.delete("/api/v1/feedbacks", this::deleteAllFeedbacks);
-        app.delete("/api/v1/feedbacks/:id", this::deleteFeedback);
+        app.delete("/api/v1/feedbacks/{id}", this::deleteFeedbackById);
     }
 
-// ==================== CREATE ====================
-
-    private void insertFeedback(Context ctx){
-        log.info("POST /api/v1/feedbacks - Richiesta creazione feedback");
+    // ==================== CREATE ====================
+    private void createFeedback(Context ctx) {
+        log.info("POST /api/v1/feedbacks - Request to create feedback");
         Feedback feedback = ctx.bodyAsClass(Feedback.class);
 
-        try{
-            Feedback createdFeedback = feedbackService.insertFeedback(
-                    feedback.getPrenotazione(),
-                    feedback.getTitolo(),
-                    feedback.getValutazione(),
-                    feedback.getCommento()
+        try {
+            Feedback createdFeedback = feedbackService.createFeedback(
+                    feedback.getBooking(),
+                    feedback.getUser(),
+                    feedback.getTitle(),
+                    feedback.getRating(),
+                    feedback.getComment()
             );
             ctx.status(HttpStatus.CREATED).json(createdFeedback);
-            log.info("Feedback creato con successo: {}", createdFeedback);
-        } catch (Exception e){
-            log.error("Errore nella creazione del feedback: {}", e.getMessage());
+            log.info("Feedback created successfully: {}", createdFeedback);
+        } catch (Exception e) {
+            log.error("Error creating feedback: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
         }
     }
 
-
-// ==================== READ ====================
-
-    private void getFeedbackById(Context ctx){
-        log.info("GET /api/v1/feedbacks/{} - Richiesta recupero feedback per ID", ctx.pathParam("id"));
+    // ==================== READ ====================
+    private void getFeedbackById(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
-        try{
+        log.info("GET /api/v1/feedbacks/{} - Request to fetch feedback by ID", id);
+
+        try {
             Feedback feedback = feedbackService.getFeedbackById(id);
             ctx.status(HttpStatus.OK).json(feedback);
-            log.info("Feedback recuperato con successo: {}", feedback);
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nel recupero del feedback: {}", e.getMessage());
+            log.info("Feedback retrieved successfully: {}", feedback);
+        } catch (FeedbackNotFoundException e) {
+            log.error("Feedback not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
-    private void getAllFeedbacks(Context ctx){
-        log.info("GET /api/v1/feedbacks - Richiesta recupero di tutti i feedback");
-        try{
-            var feedbacks = feedbackService.getAllFeedbacks();
+    private void getAllFeedbacks(Context ctx) {
+        log.info("GET /api/v1/feedbacks - Request to fetch all feedbacks");
+        try {
+            List<Feedback> feedbacks = feedbackService.getAllFeedbacks();
             ctx.status(HttpStatus.OK).json(feedbacks);
-            log.info("Feedbacks recuperati con successo, totale: {}", feedbacks.size());
-        } catch (Exception e){
-            log.error("Errore nel recupero dei feedbacks: {}", e.getMessage());
+            log.info("All feedbacks retrieved successfully, total: {}", feedbacks.size());
+        } catch (Exception e) {
+            log.error("Error fetching feedbacks: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
         }
     }
 
-    private void getFeedbacksByUtente(Context ctx){
-        log.info("GET /api/v1/feedbacks/utente/{} - Richiesta recupero feedback per ID utente", ctx.pathParam("utente_id"));
-        Long utente_id = Long.valueOf(ctx.pathParam("utente_id"));
-        try{
-            var feedbacks = feedbackService.getFeedbacksByUtente(utente_id);
+    private void getFeedbacksByUser(Context ctx) {
+        Long userId = Long.valueOf(ctx.pathParam("userId"));
+        log.info("GET /api/v1/feedbacks/user/{} - Request to fetch feedbacks by user ID", userId);
+
+        try {
+            List<Feedback> feedbacks = feedbackService.getFeedbacksByUser(userId);
             ctx.status(HttpStatus.OK).json(feedbacks);
-            log.info("Feedbacks recuperati con successo per utente ID {}: {}", utente_id, feedbacks.size());
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nel recupero dei feedbacks per utente ID {}: {}", utente_id, e.getMessage());
+            log.info("Feedbacks retrieved successfully for user ID {}: count {}", userId, feedbacks.size());
+        } catch (FeedbackNotFoundException e) {
+            log.error("Feedbacks not found for user ID {}: {}", userId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
-    private void getFeedbacksByStruttura(Context ctx){
-        log.info("GET /api/v1/feedbacks/struttura/{} - Richiesta recupero feedback per ID prenotazione", ctx.pathParam("prenotazione_id"));
-        Long prenotazione_id = Long.valueOf(ctx.pathParam("prenotazione_id"));
-        try{
-            var feedbacks = feedbackService.getFeedbacksByStruttura(prenotazione_id);
+    private void getFeedbacksByBooking(Context ctx) {
+        Long bookingId = Long.valueOf(ctx.pathParam("bookingId"));
+        log.info("GET /api/v1/feedbacks/booking/{} - Request to fetch feedbacks by booking ID", bookingId);
+
+        try {
+            List<Feedback> feedbacks = feedbackService.getFeedbacksByBooking(bookingId);
             ctx.status(HttpStatus.OK).json(feedbacks);
-            log.info("Feedbacks recuperati con successo per prenotazione ID {}: {}", prenotazione_id, feedbacks.size());
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nel recupero dei feedbacks per prenotazione ID {}: {}", prenotazione_id, e.getMessage());
+            log.info("Feedbacks retrieved successfully for booking ID {}: count {}", bookingId, feedbacks.size());
+        } catch (FeedbackNotFoundException e) {
+            log.error("Feedbacks not found for booking ID {}: {}", bookingId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
-    private void getFeedbackByUtenteAndPrenotazione(Context ctx){
-        log.info("GET /api/v1/feedbacks/utente/{}/prenotazione/{} - Richiesta recupero feedback per ID utente e ID prenotazione",
-                 ctx.pathParam("utente_id"), ctx.pathParam("prenotazione_id"));
-        Long utente_id = Long.valueOf(ctx.pathParam("utente_id"));
-        Long prenotazione_id = Long.valueOf(ctx.pathParam("prenotazione_id"));
-        try{
-            Feedback feedback = feedbackService.getFeedbackByUtenteAndPrenotazione(utente_id, prenotazione_id);
+    private void getFeedbackByUserAndBooking(Context ctx) {
+        Long userId = Long.valueOf(ctx.pathParam("userId"));
+        Long bookingId = Long.valueOf(ctx.pathParam("bookingId"));
+        log.info("GET /api/v1/feedbacks/user/{}/booking/{} - Request to fetch feedback by user and booking", userId, bookingId);
+
+        try {
+            Feedback feedback = feedbackService.getFeedbackByUserAndBooking(userId, bookingId);
             ctx.status(HttpStatus.OK).json(feedback);
-            log.info("Feedback recuperato con successo per utente ID {} e prenotazione ID {}: {}", utente_id, prenotazione_id, feedback);
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nel recupero del feedback per utente ID {} e prenotazione ID {}: {}", utente_id, prenotazione_id, e.getMessage());
+            log.info("Feedback retrieved successfully for user ID {} and booking ID {}: {}", userId, bookingId, feedback);
+        } catch (FeedbackNotFoundException e) {
+            log.error("Feedback not found for user ID {} and booking ID {}: {}", userId, bookingId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
-    private void updateFeedbackComment(Context ctx){
-        log.info("PUT /api/v1/feedbacks/{} - Richiesta aggiornamento commento feedback", ctx.pathParam("id"));
+    private void updateFeedbackComment(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
-        String newComment = ctx.bodyAsClass(String.class);
-        try{
+        log.info("PUT /api/v1/feedbacks/{} - Request to update feedback comment", id);
+        
+        // Leggiamo il nuovo commento dal corpo della richiesta
+        String newComment = ctx.body(); 
+
+        try {
+            // 1. Recuperiamo l'oggetto feedback esistente tramite ID
             Feedback feedback = feedbackService.getFeedbackById(id);
+            
+            // 2. Chiamiamo il service passando sia l'oggetto che la stringa (come richiesto dalla firma)
             Feedback updatedFeedback = feedbackService.updateFeedbackComment(feedback, newComment);
+            
             ctx.status(HttpStatus.OK).json(updatedFeedback);
-            log.info("Feedback aggiornato con successo: {}", updatedFeedback);
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nell'aggiornamento del feedback: {}", e.getMessage());
+            log.info("Feedback updated successfully: {}", updatedFeedback);
+        } catch (FeedbackNotFoundException e) {
+            log.error("Feedback not found for update: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error during feedback update: {}", e.getMessage());
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result("Error updating feedback");
         }
     }
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
+    private void deleteAllFeedbacks(Context ctx) {
+        log.info("DELETE /api/v1/feedbacks - Request to delete all feedbacks");
 
-    private void deleteAllFeedbacks(Context ctx){
-        log.info("DELETE /api/v1/feedbacks - Richiesta eliminazione di tutti i feedback");
-        try{
-            int deletedCount = feedbackService.deleteAllFeedbacks();
-            ctx.status(HttpStatus.OK).result("Totale feedback eliminati: " + deletedCount);
-            log.info("Tutti i feedback eliminati con successo, totale: {}", deletedCount);
-        } catch (Exception e){
-            log.error("Errore nell'eliminazione dei feedbacks: {}", e.getMessage());
+        try {
+            feedbackService.deleteAllFeedbacks();
+            ctx.status(HttpStatus.NO_CONTENT);
+            log.info("All feedbacks deleted successfully");
+        } catch (Exception e) {
+            log.error("Error deleting all feedbacks: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
         }
     }
 
-    private void deleteFeedback(Context ctx){
-        log.info("DELETE /api/v1/feedbacks/{} - Richiesta eliminazione feedback", ctx.pathParam("id"));
+    private void deleteFeedbackById(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
-        try{
-            boolean deleted = feedbackService.deleteFeedbackById(id);
-            if(deleted){
-                ctx.status(HttpStatus.OK).result("Feedback eliminato con successo con ID: " + id);
-                log.info("Feedback eliminato con successo con ID: {}", id);
-            } else {
-                ctx.status(HttpStatus.NOT_FOUND).result("Feedback non trovato con ID: " + id);
-                log.warn("Feedback non trovato con ID: {}", id);
-            }
-        } catch (FeedbackNotFoundException e){
-            log.error("Errore nell'eliminazione del feedback: {}", e.getMessage());
+        log.info("DELETE /api/v1/feedbacks/{} - Request to delete feedback", id);
+
+        try {
+            feedbackService.deleteFeedbackById(id);
+            ctx.status(HttpStatus.NO_CONTENT);
+            log.info("Feedback deleted successfully with ID: {}", id);
+        } catch (FeedbackNotFoundException e) {
+            log.error("Error deleting feedback: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
-    
 }

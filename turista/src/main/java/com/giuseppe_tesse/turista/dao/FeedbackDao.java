@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import com.giuseppe_tesse.turista.model.Feedback;
 
-
-public interface FeedbackDAO{
+public interface FeedbackDAO {
 
 // ==================== CREATE ====================
 
@@ -15,24 +14,28 @@ public interface FeedbackDAO{
 
     List<Feedback> findAll();
 
-    Optional<List<Feedback>> findByUtente(Long utente_id);
+    // Ricerca feedback lasciati da uno specifico utente
+    List<Feedback> findByUserId(Long userId);
 
-    Optional<List<Feedback>> findByStruttura(Long prenotazione_id);
+    // Ricerca feedback legati a una specifica prenotazione
+    Optional<List<Feedback>> findByBookingId(Long bookingId);
 
-    Optional<Feedback> findById(Long idFeedback);
+    Optional<Feedback> findById(Long feedbackId);
 
-    Optional<Feedback> findByUtenteIdAndPrenotazioneId(Long utente_id, Long prenotazione_id);
+    // Ricerca il feedback specifico di un utente per una determinata prenotazione
+    Optional<Feedback> findByUserIdAndBookingId(Long userId, Long bookingId);
 
 // ==================== UPDATE ====================
 
-    Optional<Feedback> updateCommento(Feedback feedback);
+    // Aggiorna il commento di un feedback esistente
+    Optional<Feedback> updateComment(Feedback feedback);
 
 // ==================== DELETE ====================
 
     int deleteAll();
 
-    boolean deleteById(Long idFeedback);
+    boolean deleteById(Long feedbackId);
 
-    boolean delete(Long utente_id, Long prenotazione_id);
-
-    }
+    // Elimina basandosi sulla combinazione utente e prenotazione
+    boolean deleteByUserIdAndBookingId(Long userId, Long bookingId);
+}

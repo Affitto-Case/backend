@@ -13,18 +13,17 @@ import java.time.ZoneId;
 public class DateConverter {
 
     public static LocalDate date2LocalDate(Date date2convert) {
-        return LocalDate.ofInstant(date2convert.toInstant(), ZoneId.systemDefault());
+        // Usa toLocalDate() direttamente invece di toInstant()
+        return date2convert.toLocalDate();
     }
 
     public static LocalDateTime convertLocalDateTimeFromTimestamp(Timestamp ts) {
         return ts.toLocalDateTime();
-
     }
 
     public static Timestamp convertTimestampFromLocalDateTime(LocalDateTime ldt) {
-    return Timestamp.valueOf(ldt);
-}
-
+        return Timestamp.valueOf(ldt);
+    }
 
     public static Date toSqlDate(LocalDate localDate) {
         return Date.valueOf(localDate);

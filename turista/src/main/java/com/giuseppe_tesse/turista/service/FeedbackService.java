@@ -4,11 +4,11 @@ import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.FeedbackDAO;
 import com.giuseppe_tesse.turista.model.Feedback;
-import com.giuseppe_tesse.turista.model.Prenotazione;
+import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.exception.FeedbackNotFoundException;
+import com.giuseppe_tesse.turista.model.User;
 
 import lombok.extern.slf4j.Slf4j;
-
 
 @Slf4j
 public class FeedbackService {
@@ -19,91 +19,91 @@ public class FeedbackService {
         this.feedbackDAO = feedbackDAO;
     }
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
-    public Feedback insertFeedback(Prenotazione prenotazione, String titolo, int valutazione, String commento) {
-        log.info("Tentativo di inserimento feedback - Prenotazione ID: {}, Titolo: {}", prenotazione.getId(), titolo);
-        Feedback feedback = new Feedback(prenotazione, titolo, valutazione, commento);
+    public Feedback createFeedback(Booking booking,User user, String title, int rating, String comment) {
+        log.info("Attempt to insert feedback - Booking ID: {}, Title: {}", booking.getId(), title);
+        Feedback feedback = new Feedback(booking,user, title, rating, comment);
         return feedbackDAO.create(feedback);
     }
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     public Feedback getFeedbackById(Long id) {
-        log.info("Ricerca feedback per ID: {}", id);
-        return feedbackDAO.findById(id).orElseThrow(() -> {
-            log.warn("Feedback non trovato con ID: {}", id);
-            return new FeedbackNotFoundException(id);
-        });
+        log.info("Fetching feedback by ID: {}", id);
+        return feedbackDAO.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Feedback not found with ID: {}", id);
+                    return new FeedbackNotFoundException(id);
+                });
     }
 
     public List<Feedback> getAllFeedbacks() {
-        log.info("Recupero di tutti i feedback");
+        log.info("Fetching all feedbacks");
         return feedbackDAO.findAll();
     }
 
-    public List<Feedback> getFeedbacksByUtente(Long utente_id) {
-        log.info("Ricerca feedback per ID utente: {}", utente_id);
-        return feedbackDAO.findByUtente(utente_id).orElseThrow(() -> {
-            log.warn("Nessun feedback trovato per ID utente: {}", utente_id);
-            return new FeedbackNotFoundException("Nessun feedback trovato per ID utente: " + utente_id);
-        });
+    public List<Feedback> getFeedbacksByUser(Long userId) {
+        log.info("Fetching feedbacks by User ID: {}", userId);
+        return feedbackDAO.findByUserId(userId);
     }
 
-    public List<Feedback> getFeedbacksByStruttura(Long prenotazione_id) {
-        log.info("Ricerca feedback per ID prenotazione: {}", prenotazione_id);
-        return feedbackDAO.findByStruttura(prenotazione_id).orElseThrow(() -> {
-            log.warn("Nessun feedback trovato per ID prenotazione: {}", prenotazione_id);
-            return new FeedbackNotFoundException("Nessun feedback trovato per ID prenotazione: " + prenotazione_id);
-        });
+    public List<Feedback> getFeedbacksByBooking(Long bookingId) {
+        log.info("Fetching feedbacks by Booking ID: {}", bookingId);
+        return feedbackDAO.findByBookingId(bookingId)
+                .orElseThrow(() -> {
+                    log.warn("No feedbacks found for Booking ID: {}", bookingId);
+                    return new FeedbackNotFoundException("No feedback found for Booking ID: " + bookingId);
+                });
     }
 
-    public Feedback getFeedbackByUtenteAndPrenotazione(Long utente_id, Long prenotazione_id) {
-        log.info("Ricerca feedback per ID utente: {} e ID prenotazione: {}", utente_id, prenotazione_id);
-        return feedbackDAO.findByUtenteIdAndPrenotazioneId(utente_id, prenotazione_id).orElseThrow(() -> {
-            log.warn("Feedback non trovato per ID utente: {} e ID prenotazione: {}", utente_id, prenotazione_id);
-            return new FeedbackNotFoundException("Feedback non trovato per ID utente: " + utente_id +
-                                                " e ID prenotazione: " + prenotazione_id);
-        });
+    public Feedback getFeedbackByUserAndBooking(Long userId, Long bookingId) {
+        log.info("Fetching feedback by User ID: {} and Booking ID: {}", userId, bookingId);
+        return feedbackDAO.findByUserIdAndBookingId(userId, bookingId)
+                .orElseThrow(() -> {
+                    log.warn("Feedback not found for User ID: {} and Booking ID: {}", userId, bookingId);
+                    return new FeedbackNotFoundException("Feedback not found for User ID: " + userId +
+                                                        " and Booking ID: " + bookingId);
+                });
     }
 
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
     public Feedback updateFeedbackComment(Feedback feedback, String newComment) {
-        log.info("Aggiornamento commento feedback ID: {}", feedback.getId());
-        feedback.setCommento(newComment);
-        return feedbackDAO.updateCommento(feedback).orElseThrow(() -> {
-            log.warn("Aggiornamento commento fallito per feedback ID: {}", feedback.getId());
-            return new FeedbackNotFoundException(feedback.getId());
-        });
+        log.info("Updating feedback comment for ID: {}", feedback.getId());
+        feedback.setComment(newComment);
+        return feedbackDAO.updateComment(feedback)
+                .orElseThrow(() -> {
+                    log.warn("Failed to update comment for Feedback ID: {}", feedback.getId());
+                    return new FeedbackNotFoundException(feedback.getId());
+                });
     }
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     public int deleteAllFeedbacks() {
-        log.info("Eliminazione di tutti i feedback");
+        log.info("Deleting all feedbacks");
         return feedbackDAO.deleteAll();
     }
 
     public boolean deleteFeedbackById(Long id) {
-        log.info("Tentativo di eliminazione feedback con ID: {}", id);
+        log.info("Attempting to delete feedback with ID: {}", id);
         boolean deleted = feedbackDAO.deleteById(id);
         if (!deleted) {
-            log.warn("Eliminazione feedback fallita - Feedback non trovato con ID: {}", id);
+            log.warn("Failed to delete feedback - ID not found: {}", id);
             throw new FeedbackNotFoundException(id);
         }
         return true;
     }
 
-    public boolean deleteFeedback(Long utente_id, Long prenotazione_id) {
-        log.info("Tentativo di eliminazione feedback per ID utente: {} e ID prenotazione: {}", utente_id, prenotazione_id);
-        boolean deleted = feedbackDAO.delete(utente_id, prenotazione_id);
+    public boolean deleteFeedback(Long userId, Long bookingId) {
+        log.info("Attempting to delete feedback for User ID: {} and Booking ID: {}", userId, bookingId);
+        boolean deleted = feedbackDAO.deleteByUserIdAndBookingId(userId, bookingId);
         if (!deleted) {
-            log.warn("Eliminazione feedback fallita - Feedback non trovato per ID utente: {} e ID prenotazione: {}", utente_id, prenotazione_id);
-            throw new FeedbackNotFoundException("Feedback non trovato per ID utente: " + utente_id +
-                                                " e ID prenotazione: " + prenotazione_id);
+            log.warn("Failed to delete feedback - not found for User ID: {} and Booking ID: {}", userId, bookingId);
+            throw new FeedbackNotFoundException("Feedback not found for User ID: " + userId +
+                                                " and Booking ID: " + bookingId);
         }
         return true;
     }
-    
 }

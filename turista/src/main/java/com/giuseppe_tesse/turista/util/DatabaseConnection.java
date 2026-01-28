@@ -1,8 +1,8 @@
 package com.giuseppe_tesse.turista.util;
 
 // Pattern Singleton
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,22 +18,27 @@ public class DatabaseConnection {
     private DatabaseConnection() {
     }
 
-    public static void init(String configPath) {
+    public static void init(String propsPath) {
         Properties props = new Properties();
-
-        try (FileInputStream fis = new FileInputStream(configPath)) {
-            props.load(fis);
-
+        try (InputStream input = DatabaseConnection.class.getClassLoader()
+                .getResourceAsStream(propsPath)) {
+            
+            if (input == null) {
+                throw new RuntimeException("Error: props file not found: " + propsPath);
+            }
+            
+            props.load(input);
+            
+            // AGGIUNGI QUESTE RIGHE - Assegna i valori alle variabili statiche
             url = props.getProperty("db.url");
             user = props.getProperty("db.user");
-            pwd = props.getProperty("db.pwd");
-
+            pwd = props.getProperty("db.password");
+            
+            // Imposta il flag di inizializzazione
             initialized = true;
-            Class.forName("org.postgresql.Driver");
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error: props file not found: " + configPath, e);
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading properties", e);
         }
     }
 
