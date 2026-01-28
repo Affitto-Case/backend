@@ -11,8 +11,6 @@ import java.util.Optional;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
 import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.model.Host;
-import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
-import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
 import com.giuseppe_tesse.turista.util.DateConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +22,8 @@ public class ResidenceDAOImpl implements ResidenceDAO {
 
     @Override
     public Residence create(Residence residence) {
-        String sql = "INSERT INTO residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -40,20 +39,17 @@ public class ResidenceDAOImpl implements ResidenceDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    residence.setId(rs.getLong(1));
+                    residence.setId(rs.getLong("id"));
                 } else {
                     throw new SQLException("Creating residence failed, no ID obtained.");
                 }
             }
 
-            log.info("Residence created with ID: " + residence.getId());
+            log.info("Residence created with ID: {}", residence.getId());
             return residence;
 
-        } catch (DuplicateResidenceException e) {
-            log.error("Duplicate residence: " + residence.getName(), e);
-            throw new DuplicateResidenceException("Residence already exists: " + residence.getName());
         } catch (SQLException e) {
-            log.error("Error creating residence", e);
+            log.error("Error creating residence: {}", residence.getName(), e);
             throw new RuntimeException("Error creating residence", e);
         }
     }
@@ -62,7 +58,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
 
     @Override
     public List<Residence> findAll() {
-        String sql = "SELECT * FROM residences";
+        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences";
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -73,7 +69,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                 residences.add(mapResultSetToResidence(rs));
             }
 
-            log.info("Retrieved " + residences.size() + " residences.");
+            log.info("Retrieved {} residences", residences.size());
             return residences;
 
         } catch (SQLException e) {
@@ -84,7 +80,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
 
     @Override
     public List<Residence> findByHostId(Long hostId) {
-        String sql = "SELECT * FROM residences WHERE host_id = ?";
+        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE host_id = ?";
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -96,66 +92,68 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                     residences.add(mapResultSetToResidence(rs));
                 }
             }
+            
+            log.info("Retrieved {} residences for host ID: {}", residences.size(), hostId);
             return residences;
 
         } catch (SQLException e) {
-            log.error("Error finding residences by host ID: " + hostId, e);
+            log.error("Error finding residences by host ID: {}", hostId, e);
             throw new RuntimeException("Error finding residences by host ID", e);
         }
     }
 
     @Override
     public Optional<Residence> findById(Long id) {
-        String sql = "SELECT * FROM residences WHERE id = ?";
+        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setLong(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToResidence(rs));
                 }
-            } catch (ResidenceNotFoundException e) {
-                log.error("Residence not found with ID: " + id, e);
-                throw new ResidenceNotFoundException(id);
             }
+            
+            log.debug("No residence found with ID: {}", id);
+            return Optional.empty();
+            
         } catch (SQLException e) {
-            log.error("Error finding residence by ID: " + id, e);
+            log.error("Error finding residence by ID: {}", id, e);
             throw new RuntimeException("Error finding residence by ID", e);
         }
-        return Optional.empty();
     }
 
     @Override
     public Optional<Residence> findByAddressAndFloor(String address, int floor) {
-        String sql = "SELECT * FROM residences WHERE address = ? AND floor = ?";
+        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE address = ? AND floor = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, address);
-            pstmt.setInt(2, floor);
-            try (ResultSet rs = pstmt.executeQuery()) {
+            ps.setString(1, address);
+            ps.setInt(2, floor);
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToResidence(rs));
                 }
-            } catch (ResidenceNotFoundException e) {
-                log.error("Residence not found at address: " + address, e);
-                throw new ResidenceNotFoundException("Residence not found at address: " + address);
             }
+            
+            log.debug("No residence found at address: {}, floor: {}", address, floor);
+            return Optional.empty();
+            
         } catch (SQLException e) {
             log.error("Error finding residence by address and floor", e);
             throw new RuntimeException(e);
         }
-        return Optional.empty();
     }
 
 // ==================== UPDATE ====================
 
     @Override
     public Optional<Residence> update(Residence residence) {
-        String sql = "UPDATE residences SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=? WHERE id=?";
+        String sql = "UPDATE residences SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=?, host_id=? WHERE id=? RETURNING id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -169,12 +167,19 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             ps.setDate(7, DateConverter.toSqlDate(residence.getAvailable_from()));
             ps.setDate(8, DateConverter.toSqlDate(residence.getAvailable_to()));
             ps.setLong(9, residence.getHost().getId());
+            ps.setLong(10, residence.getId());
 
-            int rows = ps.executeUpdate();
-            return rows > 0 ? Optional.of(residence) : Optional.empty();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToResidence(rs));
+                }
+            }
+
+            log.debug("No residence updated with ID: {}", residence.getId());
+            return Optional.empty();
 
         } catch (SQLException e) {
-            log.error("Error updating residence ID: " + residence.getId(), e);
+            log.error("Error updating residence ID: {}", residence.getId(), e);
             throw new RuntimeException(e);
         }
     }
@@ -184,17 +189,23 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public boolean deleteById(Long id) {
         String sql = "DELETE FROM residences WHERE id = ?";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setLong(1, id);
             int rowsAffected = ps.executeUpdate();
+            
             if (rowsAffected > 0) {
-                log.info("Residence deleted with ID: " + id);
+                log.info("Residence deleted with ID: {}", id);
                 return true;
-            } else {
-                return false;
             }
+            
+            log.debug("No residence deleted with ID: {}", id);
+            return false;
+            
         } catch (SQLException e) {
+            log.error("Error deleting residence with ID: {}", id, e);
             throw new RuntimeException(e);
         }
     }
@@ -202,12 +213,16 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public int deleteAll() {
         String sql = "DELETE FROM residences";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            int rowsAffected = ps.executeUpdate();
-            log.info("Deleted " + rowsAffected + " residences.");
-            return rowsAffected;
+            
+            int deleted = ps.executeUpdate();
+            log.info("Deleted {} residences", deleted);
+            return deleted;
+            
         } catch (SQLException e) {
+            log.error("Error deleting all residences", e);
             throw new RuntimeException(e);
         }
     }
@@ -215,11 +230,23 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public boolean deleteByHostId(Long hostId) {
         String sql = "DELETE FROM residences WHERE host_id = ?";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setLong(1, hostId);
-            return ps.executeUpdate() > 0;
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                log.info("Residences deleted for host ID: {}", hostId);
+                return true;
+            }
+            
+            log.debug("No residences deleted for host ID: {}", hostId);
+            return false;
+            
         } catch (SQLException e) {
+            log.error("Error deleting residences by host ID: {}", hostId, e);
             throw new RuntimeException(e);
         }
     }

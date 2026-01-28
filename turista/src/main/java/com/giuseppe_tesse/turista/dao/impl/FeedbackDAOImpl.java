@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dao.FeedbackDAO;
-import com.giuseppe_tesse.turista.exception.FeedbackNotFoundException;
-import com.giuseppe_tesse.turista.exception.DuplicateFeedbackException;
 import com.giuseppe_tesse.turista.model.Feedback;
 import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.model.User;
@@ -24,7 +22,8 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Feedback create(Feedback feedback) {
-        String sql = "INSERT INTO feedbacks (title, text, rating, booking_id, user_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO feedbacks (title, text, rating, booking_id, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id";
+        
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -36,20 +35,17 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    feedback.setId(rs.getLong(1));
+                    feedback.setId(rs.getLong("id"));
                 } else {
                     throw new SQLException("Creating feedback failed, no ID obtained.");
                 }
             }
 
-            log.info("Feedback created with ID: " + feedback.getId());
+            log.info("Feedback created with ID: {}", feedback.getId());
             return feedback;
 
-        } catch (DuplicateFeedbackException e) {
-            log.error("Duplicate feedback for booking: " + feedback.getBooking().getId(), e);
-            throw new DuplicateFeedbackException("Feedback already exists for this booking.");
         } catch (SQLException e) {
-            log.error("Error creating feedback", e);
+            log.error("Error creating feedback for booking ID: {}", feedback.getBooking().getId(), e);
             throw new RuntimeException("Error creating feedback", e);
         }
     }
@@ -58,7 +54,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public List<Feedback> findAll() {
-        String sql = "SELECT * FROM feedbacks";
+        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks";
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -69,7 +65,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
                 feedbacks.add(mapResultSetToFeedback(rs));
             }
 
-            log.info("Retrieved " + feedbacks.size() + " feedbacks.");
+            log.info("Retrieved {} feedbacks", feedbacks.size());
             return feedbacks;
 
         } catch (SQLException e) {
@@ -80,31 +76,30 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Optional<Feedback> findById(Long id) {
-        String sql = "SELECT * FROM feedbacks WHERE id = ?";
+        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setLong(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToFeedback(rs));
                 }
-            } catch (FeedbackNotFoundException e) {
-                log.error("Feedback not found with ID: " + id, e);
-                throw new FeedbackNotFoundException("Feedback not found with ID: " + id);
             }
 
+            log.debug("No feedback found with ID: {}", id);
+            return Optional.empty();
+
         } catch (SQLException e) {
-            log.error("Error finding feedback by ID: " + id, e);
-            throw new RuntimeException("Error finding feedback by ID: " + id, e);
+            log.error("Error finding feedback by ID: {}", id, e);
+            throw new RuntimeException("Error finding feedback by ID", e);
         }
-        return Optional.empty();
     }
 
     @Override
     public List<Feedback> findByUserId(Long userId) {
-        String sql = "SELECT * FROM feedbacks WHERE user_id = ?";
+        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE user_id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -116,66 +111,75 @@ public class FeedbackDAOImpl implements FeedbackDAO {
                     feedbacks.add(mapResultSetToFeedback(rs));
                 }
             }
+            
+            log.info("Retrieved {} feedbacks for user ID: {}", feedbacks.size(), userId);
             return feedbacks;
 
         } catch (SQLException e) {
-            log.error("Error finding feedbacks for user ID: " + userId, e);
-            throw new RuntimeException(e);
+            log.error("Error finding feedbacks for user ID: {}", userId, e);
+            throw new RuntimeException("Error finding feedbacks by user ID", e);
         }
     }
 
-        @Override
+    @Override
     public Optional<List<Feedback>> findByBookingId(Long bookingId) {
-        String sql = "SELECT * FROM feedbacks WHERE booking_id = ?";
+        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE booking_id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
     
-            pstmt.setLong(1, bookingId);
-            try (ResultSet rs = pstmt.executeQuery()) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     feedbacks.add(mapResultSetToFeedback(rs));
                 }
             }
             
-            return feedbacks.isEmpty() ? Optional.empty() : Optional.of(feedbacks);
+            if (feedbacks.isEmpty()) {
+                log.debug("No feedbacks found for booking ID: {}", bookingId);
+                return Optional.empty();
+            }
+            
+            log.info("Retrieved {} feedbacks for booking ID: {}", feedbacks.size(), bookingId);
+            return Optional.of(feedbacks);
     
         } catch (SQLException e) {
-            log.error("Error finding feedbacks for booking ID: " + bookingId, e);
+            log.error("Error finding feedbacks for booking ID: {}", bookingId, e);
             throw new RuntimeException("Error finding feedbacks by booking ID", e);
         }
     }
 
-        @Override
+    @Override
     public Optional<Feedback> findByUserIdAndBookingId(Long userId, Long bookingId) {
-        String sql = "SELECT * FROM feedbacks WHERE user_id = ? AND booking_id = ?";
+        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE user_id = ? AND booking_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            pstmt.setLong(1, userId);
-            pstmt.setLong(2, bookingId);
+            ps.setLong(1, userId);
+            ps.setLong(2, bookingId);
             
-            try (ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapResultSetToFeedback(rs));
                 }
             }
+            
+            log.debug("No feedback found for user ID: {} and booking ID: {}", userId, bookingId);
+            return Optional.empty();
+            
         } catch (SQLException e) {
-            log.error("Error finding feedback for user " + userId + " and booking " + bookingId, e);
-            throw new RuntimeException(e);
+            log.error("Error finding feedback for user ID: {} and booking ID: {}", userId, bookingId, e);
+            throw new RuntimeException("Error finding feedback", e);
         }
-        return Optional.empty();
     }
-
-
 
 // ==================== UPDATE ====================
 
     @Override
     public Optional<Feedback> updateComment(Feedback feedback) {
-        String sql = "UPDATE feedbacks SET title = ?, text = ?, rating = ? WHERE id = ?";
+        String sql = "UPDATE feedbacks SET title = ?, text = ?, rating = ? WHERE id = ? RETURNING id, title, text, rating, booking_id, user_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -185,12 +189,18 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             ps.setInt(3, feedback.getRating());
             ps.setLong(4, feedback.getId());
 
-            int rows = ps.executeUpdate();
-            return rows > 0 ? Optional.of(feedback) : Optional.empty();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToFeedback(rs));
+                }
+            }
+
+            log.debug("No feedback updated with ID: {}", feedback.getId());
+            return Optional.empty();
 
         } catch (SQLException e) {
-            log.error("Error updating feedback ID: " + feedback.getId(), e);
-            throw new RuntimeException(e);
+            log.error("Error updating feedback ID: {}", feedback.getId(), e);
+            throw new RuntimeException("Error updating feedback", e);
         }
     }
 
@@ -207,15 +217,16 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                log.info("Feedback deleted with ID: " + id);
+                log.info("Feedback deleted with ID: {}", id);
                 return true;
-            } else {
-                return false;
             }
 
+            log.debug("No feedback deleted with ID: {}", id);
+            return false;
+
         } catch (SQLException e) {
-            log.error("Error deleting feedback with ID: " + id, e);
-            throw new RuntimeException("Error deleting feedback with ID: " + id, e);
+            log.error("Error deleting feedback with ID: {}", id, e);
+            throw new RuntimeException("Error deleting feedback", e);
         }
     }
 
@@ -226,9 +237,9 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            int rowsAffected = ps.executeUpdate();
-            log.info("Deleted " + rowsAffected + " feedbacks.");
-            return rowsAffected;
+            int deleted = ps.executeUpdate();
+            log.info("Deleted {} feedbacks", deleted);
+            return deleted;
 
         } catch (SQLException e) {
             log.error("Error deleting all feedbacks", e);
@@ -236,7 +247,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         }
     }
 
-        @Override
+    @Override
     public boolean deleteByUserIdAndBookingId(Long userId, Long bookingId) {
         String sql = "DELETE FROM feedbacks WHERE user_id = ? AND booking_id = ?";
 
@@ -249,22 +260,20 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                log.info("Feedback deleted for user: " + userId + " and booking: " + bookingId);
+                log.info("Feedback deleted for user ID: {} and booking ID: {}", userId, bookingId);
                 return true;
-            } else {
-                log.debug("No feedback found to delete for user: " + userId + " and booking: " + bookingId);
-                return false;
             }
 
+            log.debug("No feedback deleted for user ID: {} and booking ID: {}", userId, bookingId);
+            return false;
+
         } catch (SQLException e) {
-            log.error("Error deleting feedback for user: " + userId, e);
+            log.error("Error deleting feedback for user ID: {} and booking ID: {}", userId, bookingId, e);
             throw new RuntimeException("Error deleting feedback", e);
         }
     }
 
-
-    
-    // ==================== UTILITY ====================
+// ==================== UTILITY ====================
     
     private Feedback mapResultSetToFeedback(ResultSet rs) throws SQLException {
         Feedback feedback = new Feedback();
@@ -284,5 +293,4 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         
         return feedback;
     }
-
 }
