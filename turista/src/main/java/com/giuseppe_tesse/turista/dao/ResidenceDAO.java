@@ -23,6 +23,9 @@ public interface ResidenceDAO {
     // Ricerca per indirizzo e piano
     Optional<Residence> findByAddressAndFloor(String address, int floor);
 
+    //Ricerca per codice host
+    List<Residence> findByHostCode(String code);
+
 // ==================== UPDATE ====================
 
     Optional<Residence> update(Residence residence);

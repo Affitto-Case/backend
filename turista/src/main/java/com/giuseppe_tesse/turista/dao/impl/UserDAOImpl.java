@@ -22,41 +22,44 @@ public class UserDAOImpl implements UserDAO {
 // ==================== CREATE ====================
 
     @Override
-public User create(User user) {
-    // Aggiungi 'registration_date' nel RETURNING se è generata dal DB
-    String sql = "INSERT INTO users (first_name, last_name, email, password, address, registration_date) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, registration_date";
-    
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-
-        ps.setString(1, user.getFirstName());
-        ps.setString(2, user.getLastName());
-        ps.setString(3, user.getEmail());
-        ps.setString(4, PasswordHasher.hash(user.getPassword()));
-        ps.setString(5, user.getAddress());
-        ps.setDate(6, DateConverter.toSqlDate(user.getRegistrationDate()));
-
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                user.setId(rs.getLong("id"));
-                // Fondamentale per avere l'oggetto completo subito!
-                user.setRegistrationDate(DateConverter.date2LocalDate(rs.getDate("registration_date")));
-            }
-        }
+    public User create(User user) {
+        log.info("Creating new user with email: {}", user.getEmail());
+        String sql = "INSERT INTO users (first_name, last_name, email, password, address, registration_date) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, registration_date";
         
-        log.info("User creato con successo - ID: {}, Email: {}", user.getId(), user.getEmail());
-        return user;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-    } catch (SQLException e) {
-        log.error("Errore durante la creazione dell'utente: {}", user.getEmail(), e);
-        throw new RuntimeException("SQLException durante create", e);
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, PasswordHasher.hash(user.getPassword()));
+            ps.setString(5, user.getAddress());
+            ps.setDate(6, DateConverter.toSqlDate(user.getRegistrationDate()));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    user.setId(rs.getLong("id"));
+                    user.setRegistrationDate(DateConverter.date2LocalDate(rs.getDate("registration_date")));
+                    log.info("User created successfully - ID: {}, Email: {}", user.getId(), user.getEmail());
+                } else {
+                    log.error("Creating user failed, no ID obtained");
+                    throw new SQLException("Creating user failed, no ID obtained.");
+                }
+            }
+            
+            return user;
+
+        } catch (SQLException e) {
+            log.error("Error creating user with email: {}", user.getEmail(), e);
+            throw new RuntimeException("Error creating user", e);
+        }
     }
-}
 
 // ==================== READ ====================
 
     @Override
     public List<User> findAll() {
+        log.info("Retrieving all users");
         String sql = "SELECT id, first_name, last_name, email, password, address, registration_date FROM users";
         List<User> users = new ArrayList<>();
 
@@ -68,17 +71,18 @@ public User create(User user) {
                 users.add(mapResultSetToUser(rs));
             }
 
-            log.info("Retrieved {} users", users.size());
+            log.info("Successfully retrieved {} users", users.size());
             return users;
 
         } catch (SQLException e) {
-            log.error("Error retrieving users", e);
+            log.error("Error retrieving all users", e);
             throw new RuntimeException("Error retrieving users", e);
         }
     }
 
     @Override
     public Optional<User> findById(Long id) {
+        log.info("Finding user by ID: {}", id);
         String sql = "SELECT id, first_name, last_name, email, password, address, registration_date FROM users WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -88,11 +92,13 @@ public User create(User user) {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToUser(rs));
+                    User user = mapResultSetToUser(rs);
+                    log.info("Successfully found user with ID: {}", id);
+                    return Optional.of(user);
                 }
             }
 
-            log.debug("No user found with ID: {}", id);
+            log.warn("No user found with ID: {}", id);
             return Optional.empty();
 
         } catch (SQLException e) {
@@ -103,6 +109,7 @@ public User create(User user) {
 
     @Override
     public Optional<User> findByEmail(String email) {
+        log.info("Finding user by email: {}", email);
         String sql = "SELECT id, first_name, last_name, email, password, address, registration_date FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -112,11 +119,13 @@ public User create(User user) {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToUser(rs));
+                    User user = mapResultSetToUser(rs);
+                    log.info("Successfully found user with email: {}", email);
+                    return Optional.of(user);
                 }
             }
 
-            log.debug("No user found with email: {}", email);
+            log.warn("No user found with email: {}", email);
             return Optional.empty();
 
         } catch (SQLException e) {
@@ -129,6 +138,7 @@ public User create(User user) {
 
     @Override
     public Optional<User> update(User user) {
+        log.info("Updating user with ID: {}", user.getId());
         String sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, address = ?, registration_date = ? WHERE id = ? RETURNING id, first_name, last_name, email, password, address, registration_date";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -144,15 +154,17 @@ public User create(User user) {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToUser(rs));
+                    User updatedUser = mapResultSetToUser(rs);
+                    log.info("Successfully updated user with ID: {}", user.getId());
+                    return Optional.of(updatedUser);
                 }
             }
 
-            log.debug("No user updated with ID: {}", user.getId());
+            log.warn("No user updated with ID: {}", user.getId());
             return Optional.empty();
 
         } catch (SQLException e) {
-            log.error("Error updating user ID: {}", user.getId(), e);
+            log.error("Error updating user with ID: {}", user.getId(), e);
             throw new RuntimeException("Error updating user", e);
         }
     }
@@ -161,6 +173,7 @@ public User create(User user) {
 
     @Override
     public boolean deleteById(Long id) {
+        log.info("Deleting user with ID: {}", id);
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -170,11 +183,11 @@ public User create(User user) {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                log.info("User deleted with ID: {}", id);
+                log.info("Successfully deleted user with ID: {}", id);
                 return true;
             }
             
-            log.debug("No user deleted with ID: {}", id);
+            log.warn("No user deleted with ID: {}", id);
             return false;
 
         } catch (SQLException e) {
@@ -185,13 +198,14 @@ public User create(User user) {
 
     @Override
     public int deleteAll() {
+        log.info("Deleting all users");
         String sql = "DELETE FROM users";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int deleted = ps.executeUpdate();
-            log.info("Deleted {} users", deleted);
+            log.info("Successfully deleted {} users", deleted);
             return deleted;
 
         } catch (SQLException e) {
@@ -202,6 +216,7 @@ public User create(User user) {
 
     @Override
     public boolean deleteByEmail(String email) {
+        log.info("Deleting user with email: {}", email);
         String sql = "DELETE FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -211,11 +226,11 @@ public User create(User user) {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                log.info("User deleted with email: {}", email);
+                log.info("Successfully deleted user with email: {}", email);
                 return true;
             }
             
-            log.debug("No user deleted with email: {}", email);
+            log.warn("No user deleted with email: {}", email);
             return false;
 
         } catch (SQLException e) {

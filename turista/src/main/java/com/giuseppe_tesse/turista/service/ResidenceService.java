@@ -70,6 +70,11 @@ public class ResidenceService {
                 });
     }
 
+    public List<Residence> getResidenceByHostCode(String code){
+        log.info("Fetching residence by host code: {}",code);
+        return residenceDAO.findByHostCode(code);
+    }
+
     // ==================== UPDATE ====================
 
     public Residence updateResidence(Residence residence) {

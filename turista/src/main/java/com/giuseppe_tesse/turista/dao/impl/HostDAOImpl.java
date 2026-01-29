@@ -24,6 +24,7 @@ public class HostDAOImpl implements HostDAO {
 
     @Override
     public Host create(Host host) {
+        log.info("Creating host for user ID: {}", host.getId());
         String sql = "INSERT INTO hosts (user_id, host_code, total_bookings, registration_date) VALUES (?, ?, ?, ?) RETURNING user_id";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -37,12 +38,13 @@ public class HostDAOImpl implements HostDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     host.setId(rs.getLong("user_id"));
+                    log.info("Host created successfully for user ID: {} with host code: {}", host.getId(), host.getHost_code());
                 } else {
+                    log.error("Creating host failed, no ID obtained");
                     throw new SQLException("Creating host failed, no ID obtained.");
                 }
             }
 
-            log.info("Host details created for User ID: {}", host.getId());
             return host;
             
         } catch (SQLException e) {
@@ -55,6 +57,7 @@ public class HostDAOImpl implements HostDAO {
 
     @Override
     public List<Host> findAll() {
+        log.info("Retrieving all hosts");
         String sql = SELECT_HOST_JOIN;
         List<Host> hosts = new ArrayList<>();
         
@@ -66,17 +69,18 @@ public class HostDAOImpl implements HostDAO {
                 hosts.add(mapResultSetToHost(rs));
             }
             
-            log.info("Retrieved {} hosts", hosts.size());
+            log.info("Successfully retrieved {} hosts", hosts.size());
             return hosts;
             
         } catch (SQLException e) {
-            log.error("Error retrieving hosts", e);
+            log.error("Error retrieving all hosts", e);
             throw new RuntimeException("Error retrieving hosts", e);
         }
     }
 
     @Override
     public Optional<Host> findById(Long id) {
+        log.info("Finding host by ID: {}", id);
         String sql = SELECT_HOST_JOIN + " WHERE u.id = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -85,19 +89,24 @@ public class HostDAOImpl implements HostDAO {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToHost(rs));
+                    Host host = mapResultSetToHost(rs);
+                    log.info("Successfully found host with ID: {}", id);
+                    return Optional.of(host);
                 }
             }
+            
+            log.warn("No host found with ID: {}", id);
             return Optional.empty();
             
         } catch (SQLException e) {
-            log.error("Errore findById host: {}", id, e);
-            throw new RuntimeException(e);
+            log.error("Error finding host by ID: {}", id, e);
+            throw new RuntimeException("Error finding host by ID", e);
         }
     }
 
     @Override
     public Optional<Host> findByHostCode(String hostCode) {
+        log.info("Finding host by host code: {}", hostCode);
         String sql = SELECT_HOST_JOIN + " WHERE h.host_code = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -106,14 +115,18 @@ public class HostDAOImpl implements HostDAO {
             ps.setString(1, hostCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToHost(rs));
+                    Host host = mapResultSetToHost(rs);
+                    log.info("Successfully found host with code: {}", hostCode);
+                    return Optional.of(host);
                 }
             }
+            
+            log.warn("No host found with code: {}", hostCode);
             return Optional.empty();
             
         } catch (SQLException e) {
-            log.error("Errore ricerca host per codice: {}", hostCode, e);
-            throw new RuntimeException(e);
+            log.error("Error finding host by code: {}", hostCode, e);
+            throw new RuntimeException("Error finding host by code", e);
         }
     }
 
@@ -121,6 +134,7 @@ public class HostDAOImpl implements HostDAO {
 
     @Override
     public Optional<Host> update(Host host) {
+        log.info("Updating host with ID: {}", host.getId());
         String sql = "UPDATE hosts SET host_code = ?, total_bookings = ? WHERE user_id = ? RETURNING user_id";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -132,15 +146,16 @@ public class HostDAOImpl implements HostDAO {
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    log.info("Successfully updated host with ID: {}", host.getId());
                     return Optional.of(host);
                 }
             }
             
-            log.debug("No host updated with ID: {}", host.getId());
+            log.warn("No host updated with ID: {}", host.getId());
             return Optional.empty();
             
         } catch (SQLException e) {
-            log.error("Error updating host ID: {}", host.getId(), e);
+            log.error("Error updating host with ID: {}", host.getId(), e);
             throw new RuntimeException("Error updating host", e);
         }
     }
@@ -149,6 +164,7 @@ public class HostDAOImpl implements HostDAO {
 
     @Override
     public boolean deleteById(Long id) {
+        log.info("Deleting host with ID: {}", id);
         String sql = "DELETE FROM hosts WHERE user_id = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -158,11 +174,11 @@ public class HostDAOImpl implements HostDAO {
             int rowsAffected = ps.executeUpdate();
             
             if (rowsAffected > 0) {
-                log.info("Host deleted with ID: {}", id);
+                log.info("Successfully deleted host with ID: {}", id);
                 return true;
             }
             
-            log.debug("No host deleted with ID: {}", id);
+            log.warn("No host deleted with ID: {}", id);
             return false;
             
         } catch (SQLException e) {

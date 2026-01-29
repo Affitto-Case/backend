@@ -34,12 +34,16 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public Booking create(Booking booking) {
+        log.info("Creating new booking for user ID: {} and residence ID: {}", booking.getUserId(), booking.getResidenceId());
         String sql = "INSERT INTO bookings (start_date, end_date, residence_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
-        if (existsOverlappingBooking(booking.getResidenceId(),booking.getStartDate(),booking.getEndDate())) {
-        throw new DuplicateBookingException(
-            "This residence is already booked for the selected dates"
-        );
-    }
+        
+        if (existsOverlappingBooking(booking.getResidenceId(), booking.getStartDate(), booking.getEndDate())) {
+            log.warn("Booking creation failed: overlapping booking exists for residence ID: {} between {} and {}", 
+                     booking.getResidenceId(), booking.getStartDate(), booking.getEndDate());
+            throw new DuplicateBookingException(
+                "This residence is already booked for the selected dates"
+            );
+        }
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -52,16 +56,17 @@ public class BookingDAOImpl implements BookingDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     booking.setId(rs.getLong("id"));
+                    log.info("Booking created successfully with ID: {}", booking.getId());
                 } else {
+                    log.error("Creating booking failed, no ID obtained");
                     throw new SQLException("Creating booking failed, no ID obtained.");
                 }
             }
 
-            log.info("Booking created with ID: {}", booking.getId());
             return booking;
 
         } catch (SQLException e) {
-            log.error("Error creating booking for user ID: {}", booking.getUserId(), e);
+            log.error("Error creating booking for user ID: {} and residence ID: {}", booking.getUserId(), booking.getResidenceId(), e);
             throw new RuntimeException("Error creating booking", e);
         }
     }
@@ -70,6 +75,7 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public Optional<Booking> findById(Long id) {
+        log.info("Finding booking by ID: {}", id);
         String sql = SELECT_ALL_JOIN + " WHERE b.id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -78,19 +84,24 @@ public class BookingDAOImpl implements BookingDAO {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToBooking(rs));
+                    Booking booking = mapResultSetToBooking(rs);
+                    log.info("Successfully found booking with ID: {}", id);
+                    return Optional.of(booking);
                 }
             }
+            
+            log.warn("No booking found with ID: {}", id);
             return Optional.empty();
 
         } catch (SQLException e) {
-            log.error("Errore findById booking: {}", id, e);
-            throw new RuntimeException(e);
+            log.error("Error finding booking by ID: {}", id, e);
+            throw new RuntimeException("Error finding booking by ID", e);
         }
     }
 
     @Override
     public List<Booking> findAll() {
+        log.info("Retrieving all bookings");
         String sql = SELECT_ALL_JOIN;
         List<Booking> bookings = new ArrayList<>();
         
@@ -102,17 +113,18 @@ public class BookingDAOImpl implements BookingDAO {
                 bookings.add(mapResultSetToBooking(rs));
             }
 
-            log.info("Retrieved {} bookings", bookings.size());
+            log.info("Successfully retrieved {} bookings", bookings.size());
             return bookings;
 
         } catch (SQLException e) {
-            log.error("Error retrieving bookings", e);
+            log.error("Error retrieving all bookings", e);
             throw new RuntimeException("Error retrieving bookings", e);
         }
     }
 
     @Override
     public Optional<List<Booking>> findByResidenceId(Long residenceId) {
+        log.info("Finding bookings for residence ID: {}", residenceId);
         String sql = SELECT_ALL_JOIN + " WHERE b.residence_id = ?";
         List<Booking> bookings = new ArrayList<>();
         
@@ -125,10 +137,18 @@ public class BookingDAOImpl implements BookingDAO {
                     bookings.add(mapResultSetToBooking(rs));
                 }
             }
-            return bookings.isEmpty() ? Optional.empty() : Optional.of(bookings);
+            
+            if (bookings.isEmpty()) {
+                log.info("No bookings found for residence ID: {}", residenceId);
+                return Optional.empty();
+            }
+            
+            log.info("Successfully retrieved {} bookings for residence ID: {}", bookings.size(), residenceId);
+            return Optional.of(bookings);
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            log.error("Error finding bookings by residence ID: {}", residenceId, e);
+            throw new RuntimeException("Error finding bookings by residence ID", e);
         }
     }
 
@@ -136,6 +156,7 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public Optional<Booking> update(Booking booking) {
+        log.info("Updating booking with ID: {}", booking.getId());
         String sql = "UPDATE bookings SET start_date = ?, end_date = ?, residence_id = ?, user_id = ? WHERE id = ? RETURNING id, start_date, end_date, residence_id, user_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -149,15 +170,17 @@ public class BookingDAOImpl implements BookingDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapResultSetToBooking(rs));
+                    Booking updatedBooking = mapResultSetToBooking(rs);
+                    log.info("Successfully updated booking with ID: {}", booking.getId());
+                    return Optional.of(updatedBooking);
                 }
             }
 
-            log.debug("No booking updated with ID: {}", booking.getId());
+            log.warn("No booking updated with ID: {}", booking.getId());
             return Optional.empty();
 
         } catch (SQLException e) {
-            log.error("Error updating booking ID: {}", booking.getId(), e);
+            log.error("Error updating booking with ID: {}", booking.getId(), e);
             throw new RuntimeException("Error updating booking", e);
         }
     }
@@ -166,6 +189,7 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public boolean deleteById(Long id) {
+        log.info("Deleting booking with ID: {}", id);
         String sql = "DELETE FROM bookings WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -175,11 +199,11 @@ public class BookingDAOImpl implements BookingDAO {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                log.info("Booking deleted with ID: {}", id);
+                log.info("Successfully deleted booking with ID: {}", id);
                 return true;
             }
             
-            log.debug("No booking found to delete with ID: {}", id);
+            log.warn("No booking found to delete with ID: {}", id);
             return false;
 
         } catch (SQLException e) {
@@ -190,13 +214,14 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public int deleteAll() {
+        log.info("Deleting all bookings");
         String sql = "DELETE FROM bookings";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int deleted = ps.executeUpdate();
-            log.info("Deleted {} bookings", deleted);
+            log.info("Successfully deleted {} bookings", deleted);
             return deleted;
 
         } catch (SQLException e) {
@@ -230,31 +255,38 @@ public class BookingDAOImpl implements BookingDAO {
         return booking;
     }
 
+    public boolean existsOverlappingBooking(Long residenceId, LocalDateTime start, LocalDateTime end) {
+        log.debug("Checking for overlapping bookings for residence ID: {} between {} and {}", residenceId, start, end);
+        String sql = """
+            SELECT 1
+            FROM bookings
+            WHERE residence_id = ?
+            AND start_date < ?
+            AND end_date > ?
+            LIMIT 1
+        """;
 
-    public boolean existsOverlappingBooking(Long residenceId,LocalDateTime start,LocalDateTime end) {
-    String sql = """
-        SELECT 1
-        FROM bookings
-        WHERE residence_id = ?
-        AND start_date < ?
-        AND end_date > ?
-        LIMIT 1
-    """;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, residenceId);
+            ps.setTimestamp(2, DateConverter.convertTimestampFromLocalDateTime(end));
+            ps.setTimestamp(3, DateConverter.convertTimestampFromLocalDateTime(start));
 
-        ps.setLong(1, residenceId);
-        ps.setTimestamp(2, DateConverter.convertTimestampFromLocalDateTime(end));
-        ps.setTimestamp(3, DateConverter.convertTimestampFromLocalDateTime(start));
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean exists = rs.next();
+                if (exists) {
+                    log.debug("Overlapping booking found for residence ID: {}", residenceId);
+                } else {
+                    log.debug("No overlapping bookings found for residence ID: {}", residenceId);
+                }
+                return exists;
+            }
 
-        try (ResultSet rs = ps.executeQuery()) {
-            return rs.next(); 
+        } catch (SQLException e) {
+            log.error("Error checking overlapping bookings for residence ID: {}", residenceId, e);
+            throw new RuntimeException("Error checking overlapping bookings", e);
         }
-
-    } catch (SQLException e) {
-        throw new RuntimeException("Error checking overlapping bookings", e);
     }
-}
 
 }

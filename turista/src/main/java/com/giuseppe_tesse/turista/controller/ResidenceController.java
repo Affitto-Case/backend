@@ -28,6 +28,7 @@ public class ResidenceController implements Controller {
         app.get("/api/v1/residences", this::getAllResidences);
         app.get("/api/v1/residences/address/{address}/floor/{floor}", this::getResidenceByAddressAndFloor);
         app.get("/api/v1/residences/owner/{ownerId}", this::getResidencesByOwner);
+        app.get("/api/v1/residences/owner/{hostCode}", this::getResidencesByHostCode);
         app.put("/api/v1/residences/{id}", this::updateResidence);
         app.delete("/api/v1/residences/{id}", this::deleteResidenceById);
         app.delete("/api/v1/residences/owner/{ownerId}", this::deleteResidencesByOwner);
@@ -112,6 +113,20 @@ public class ResidenceController implements Controller {
             log.info("Residences retrieved successfully for owner ID {}: {}", ownerId, residences);
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found for owner ID {}: {}", ownerId, e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        }
+    }
+
+    private void getResidencesByHostCode(Context ctx){
+        String host_code = ctx.pathParam("hostCode");
+        log.info("/api/v1/residences/owner/{} - Request to fetch residences by host code", host_code);
+
+        try{
+            List<Residence> residences = residenceService.getResidenceByHostCode(host_code);
+            ctx.status(HttpStatus.OK).json(residences);
+            log.info("Residences retrieved successfully for host code {}: {}", host_code, residences);
+        } catch (ResidenceNotFoundException e) {
+            log.error("Residences not found for host code {}: {}", host_code, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
