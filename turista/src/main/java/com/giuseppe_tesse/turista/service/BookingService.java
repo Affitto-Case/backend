@@ -8,8 +8,6 @@ import com.giuseppe_tesse.turista.exception.DuplicateBookingException;
 import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.model.Booking;
-import com.giuseppe_tesse.turista.model.Residence;
-import com.giuseppe_tesse.turista.model.User;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,20 +22,20 @@ public class BookingService {
 
     // ==================== CREATE ====================
 
-    public Booking createBooking(Residence residence,
-                                 User user,
+    public Booking createBooking(Long residenceId,
+                                 Long userId,
                                  LocalDateTime startDate,
                                  LocalDateTime endDate) {
 
         log.info(
             "Attempt to create booking - Residence ID: {}, User ID: {}, Start: {}, End: {}",
-            residence.getId(), user.getId(), startDate, endDate
+            residenceId, userId, startDate, endDate
         );
 
         List<Booking> existingBookings =
-                bookingDAO.findByResidenceId(residence.getId())
+                bookingDAO.findByResidenceId(residenceId)
                         .orElseThrow(() ->
-                                new ResidenceNotFoundException(residence.getId())
+                                new ResidenceNotFoundException(residenceId)
                         );
 
         for (Booking booking : existingBookings) {
@@ -50,7 +48,7 @@ public class BookingService {
             }
         }
 
-        Booking booking = new Booking(residence, user, startDate, endDate);
+        Booking booking = new Booking(residenceId, userId, startDate, endDate);
         return bookingDAO.create(booking);
     }
 

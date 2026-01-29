@@ -55,7 +55,7 @@ public class HostDAOImpl implements HostDAO {
 
     @Override
     public List<Host> findAll() {
-        String sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.address, u.registration_date, h.host_code, h.total_bookings FROM users u JOIN hosts h ON u.id = h.user_id";
+        String sql = SELECT_HOST_JOIN;
         List<Host> hosts = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();

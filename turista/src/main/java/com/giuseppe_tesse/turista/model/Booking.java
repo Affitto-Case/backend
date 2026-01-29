@@ -14,18 +14,18 @@ import java.util.Objects;
 public class Booking {
 
     private Long id;
-    private Residence residence;
-    private User user;
+    private Long residenceId;
+    private Long userId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    public Booking(Residence residence,
-                   User user,
+    public Booking(Long residenceId,
+                   Long userId,
                    LocalDateTime startDate,
                    LocalDateTime endDate) {
 
-        this.residence = residence;
-        this.user = user;
+        this.residenceId = residenceId;
+        this.userId = userId;
         this.startDate = startDate;
         this.endDate = endDate;
     }

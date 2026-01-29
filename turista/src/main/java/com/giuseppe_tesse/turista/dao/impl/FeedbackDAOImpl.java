@@ -22,7 +22,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Feedback create(Feedback feedback) {
-        String sql = "INSERT INTO feedbacks (title, text, rating, booking_id, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO feedbacks (title, comment, rating, booking_id, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -30,8 +30,8 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             ps.setString(1, feedback.getTitle());
             ps.setString(2, feedback.getComment());
             ps.setInt(3, feedback.getRating());
-            ps.setLong(4, feedback.getBooking().getId());
-            ps.setLong(5, feedback.getUser().getId());
+            ps.setLong(4, feedback.getBookingId());
+            ps.setLong(5, feedback.getUserId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -45,7 +45,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             return feedback;
 
         } catch (SQLException e) {
-            log.error("Error creating feedback for booking ID: {}", feedback.getBooking().getId(), e);
+            log.error("Error creating feedback for booking ID: {}", feedback.getBookingId(), e);
             throw new RuntimeException("Error creating feedback", e);
         }
     }
@@ -54,7 +54,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public List<Feedback> findAll() {
-        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks";
+        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks";
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -76,7 +76,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Optional<Feedback> findById(Long id) {
-        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE id = ?";
+        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -99,7 +99,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public List<Feedback> findByUserId(Long userId) {
-        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE user_id = ?";
+        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE user_id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -123,7 +123,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Optional<List<Feedback>> findByBookingId(Long bookingId) {
-        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE booking_id = ?";
+        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE booking_id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -152,7 +152,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Optional<Feedback> findByUserIdAndBookingId(Long userId, Long bookingId) {
-        String sql = "SELECT id, title, text, rating, booking_id, user_id FROM feedbacks WHERE user_id = ? AND booking_id = ?";
+        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE user_id = ? AND booking_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -179,7 +179,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Optional<Feedback> updateComment(Feedback feedback) {
-        String sql = "UPDATE feedbacks SET title = ?, text = ?, rating = ? WHERE id = ? RETURNING id, title, text, rating, booking_id, user_id";
+        String sql = "UPDATE feedbacks SET title = ?, comment = ?, rating = ? WHERE id = ? RETURNING id, title, comment, rating, booking_id, user_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -279,17 +279,17 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         Feedback feedback = new Feedback();
         feedback.setId(rs.getLong("id"));
         feedback.setTitle(rs.getString("title"));
-        feedback.setComment(rs.getString("text"));
+        feedback.setComment(rs.getString("comment"));
         feedback.setRating(rs.getInt("rating"));
         
         // Mapping degli ID relazionali (User e Booking)
         User user = new User();
         user.setId(rs.getLong("user_id"));
-        feedback.setUser(user);
+        feedback.setUserId(user.getId());
         
         Booking booking = new Booking();
         booking.setId(rs.getLong("booking_id"));
-        feedback.setBooking(booking);
+        feedback.setBookingId(booking.getId());
         
         return feedback;
     }

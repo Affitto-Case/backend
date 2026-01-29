@@ -41,8 +41,8 @@ public class FeedbackController implements Controller {
 
         try {
             Feedback createdFeedback = feedbackService.createFeedback(
-                    feedback.getBooking(),
-                    feedback.getUser(),
+                    feedback.getBookingId(),
+                    feedback.getUserId(),
                     feedback.getTitle(),
                     feedback.getRating(),
                     feedback.getComment()

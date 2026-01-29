@@ -21,8 +21,8 @@ public class FeedbackService {
 
     // ==================== CREATE ====================
 
-    public Feedback createFeedback(Booking booking,User user, String title, int rating, String comment) {
-        log.info("Attempt to insert feedback - Booking ID: {}, Title: {}", booking.getId(), title);
+    public Feedback createFeedback(Long booking,Long user, String title, int rating, String comment) {
+        log.info("Attempt to insert feedback - Booking ID: {}, Title: {}", booking, title);
         Feedback feedback = new Feedback(booking,user, title, rating, comment);
         return feedbackDAO.create(feedback);
     }

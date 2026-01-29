@@ -10,15 +10,15 @@ import lombok.NoArgsConstructor;
 public class Feedback {
 
     private Long id;
-    private Booking booking;
-    private User user;
+    private Long bookingId;
+    private Long userId;
     private String title;
     private int rating;
     private String comment;
 
-    public Feedback(Booking booking,User user, String title, int rating, String comment) {
-        this.booking = booking;
-        this.user=user;
+    public Feedback(Long bookingId,Long userId, String title, int rating, String comment) {
+        this.bookingId = bookingId;
+        this.userId=userId;
         this.title = title;
         this.rating = rating;
         this.comment = comment;
@@ -41,10 +41,11 @@ public class Feedback {
     public String toString() {
         return "Feedback{" +
                 "id=" + id +
-                ", booking=" + booking +
+                ", booking=" + bookingId +
                 ", title='" + title + '\'' +
                 ", rating=" + rating +
                 ", comment='" + comment + '\'' +
+                ", userId='" + userId + '\''+
                 '}';
     }
 }

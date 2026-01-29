@@ -41,10 +41,10 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Villa Smeralda\",\n    \"address\": \"Costa Smeralda 5\",\n    \"numberOfRooms\": 5,\n    \"numberOfBeds\": 10,\n    \"floor\": 0,\n    \"price\": 500.00,\n    \"availabilityStart\": \"2025-06-01\",\n    \"availabilityEnd\": \"2025-09-01\",\n    \"hostId\": 1\n}",
+							"raw": "{\n    \"name\": \"Villa Smeralda\",\n    \"address\": \"Costa Smeralda 5\",\n    \"number_of_rooms\": 5,\n    \"guest_capacity\": 10,\n    \"floor\": 0,\n    \"price_per_night\": 500.00,\n    \"available_from\": \"2025-06-01\",\n    \"available_to\": \"2025-09-01\"}",
 							"options": { "raw": { "language": "json" } }
 						},
-						"url": "http://localhost:8080/api/v1/residences"
+						"url": "http://localhost:8080/api/v1/residences/1"
 					}
 				},
 				{ "name": "Get All Residences", "request": { "method": "GET", "url": "http://localhost:8080/api/v1/residences" } }
@@ -60,7 +60,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"startDate\": \"2025-07-10\",\n    \"endDate\": \"2025-07-17\",\n    \"residenceId\": 1,\n    \"userId\": 2\n}",
+							"raw": "{\n    \"startDate\": \"2025-07-10T00:00:00\",\n    \"endDate\": \"2025-07-15T12:00:00\",\n    \"residenceId\": 1,\n    \"userId\": 1\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": "http://localhost:8080/api/v1/bookings"

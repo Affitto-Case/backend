@@ -1,17 +1,16 @@
 package com.giuseppe_tesse.turista.controller;
 
+import java.util.List;
+
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
+import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.service.ResidenceService;
-import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 @Slf4j
 public class ResidenceController implements Controller {
@@ -24,7 +23,7 @@ public class ResidenceController implements Controller {
 
     @Override
     public void registerRoutes(Javalin app) {
-        app.post("/api/v1/residences", this::createResidence);
+        app.post("/api/v1/residences/{hostId}", this::createResidence);
         app.get("/api/v1/residences/{id}", this::getResidenceById);
         app.get("/api/v1/residences", this::getAllResidences);
         app.get("/api/v1/residences/address/{address}/floor/{floor}", this::getResidenceByAddressAndFloor);
@@ -39,9 +38,9 @@ public class ResidenceController implements Controller {
     private void createResidence(Context ctx) {
         log.info("POST /api/v1/residences - Request to create residence");
         Residence residence = ctx.bodyAsClass(Residence.class);
+        Long hostId = Long.valueOf(ctx.pathParam("hostId"));
 
         try {
-            // Allineato ai nomi dei campi del modello Residence (snake_case in Java produce questi getter)
             Residence createdResidence = residenceService.createResidence(
                     residence.getName(),
                     residence.getAddress(),
@@ -51,7 +50,7 @@ public class ResidenceController implements Controller {
                     residence.getFloor(),
                     residence.getAvailable_from(),
                     residence.getAvailable_to(),
-                    residence.getHost()
+                    hostId
             );
             ctx.status(HttpStatus.CREATED).json(createdResidence);
             log.info("Residence successfully created: {}", createdResidence);

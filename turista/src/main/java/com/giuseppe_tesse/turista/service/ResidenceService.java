@@ -7,7 +7,6 @@ import com.giuseppe_tesse.turista.dao.ResidenceDAO;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.model.Residence;
-import com.giuseppe_tesse.turista.model.Host;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,13 +24,13 @@ public class ResidenceService {
     public Residence createResidence(String name, String address, double pricePerNight,
                                      int rooms, int guestCapacity, int floor,
                                      LocalDate availabilityStart, LocalDate availabilityEnd,
-                                     Host host) {
+                                     Long hostId) {
 
         log.info("Attempting to insert residence - Name: {}, Address: {}, Floor: {}", name, address, floor);
 
         Residence residence = new Residence(name, address, pricePerNight,
                                             rooms, guestCapacity, floor,
-                                            availabilityStart, availabilityEnd, host);
+                                            availabilityStart, availabilityEnd, hostId);
 
         if (residenceDAO.findByAddressAndFloor(address, floor).isPresent()) {
             log.warn("Failed to insert residence - already exists at Address: {} Floor: {}", address, floor);

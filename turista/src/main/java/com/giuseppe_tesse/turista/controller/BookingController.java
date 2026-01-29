@@ -39,8 +39,8 @@ public class BookingController implements Controller {
 
         try {
             Booking createdBooking = bookingService.createBooking(
-                    booking.getResidence(),
-                    booking.getUser(),
+                    booking.getResidenceId(),
+                    booking.getUserId(),
                     booking.getStartDate(),
                     booking.getEndDate()
             );
