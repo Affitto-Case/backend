@@ -22,7 +22,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 
     @Override
     public Feedback create(Feedback feedback) {
-        log.info("Creating new feedback for booking ID: {} by user ID: {}", feedback.getBookingId(), feedback.getUserId());
+        log.info("Creating new feedback for booking ID: {} by user ID: {}", feedback.getBooking().getId(), feedback.getUser().getId());
         String sql = "INSERT INTO feedbacks (title, comment, rating, booking_id, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -31,8 +31,8 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             ps.setString(1, feedback.getTitle());
             ps.setString(2, feedback.getComment());
             ps.setInt(3, feedback.getRating());
-            ps.setLong(4, feedback.getBookingId());
-            ps.setLong(5, feedback.getUserId());
+            ps.setLong(4, feedback.getBooking().getId());
+            ps.setLong(5, feedback.getUser().getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -47,7 +47,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
             return feedback;
 
         } catch (SQLException e) {
-            log.error("Error creating feedback for booking ID: {} by user ID: {}", feedback.getBookingId(), feedback.getUserId(), e);
+            log.error("Error creating feedback for booking ID: {} by user ID: {}", feedback.getBooking().getId(), feedback.getUser().getId(), e);
             throw new RuntimeException("Error creating feedback", e);
         }
     }
@@ -302,11 +302,11 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         // Mapping degli ID relazionali (User e Booking)
         User user = new User();
         user.setId(rs.getLong("user_id"));
-        feedback.setUserId(user.getId());
+        feedback.setUser(user);
         
         Booking booking = new Booking();
         booking.setId(rs.getLong("booking_id"));
-        feedback.setBookingId(booking.getId());
+        feedback.setBooking(booking);
         
         return feedback;
     }

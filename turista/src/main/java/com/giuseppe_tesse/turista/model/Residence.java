@@ -21,7 +21,7 @@ public class Residence {
     private int floor;
     private LocalDate available_from;
     private LocalDate available_to;
-    private Long hostId;
+    private Host host;
 
     // Costruttore senza id (per INSERT)
     public Residence(String name,
@@ -32,7 +32,7 @@ public class Residence {
                      int floor,
                      LocalDate available_from,
                      LocalDate available_to,
-                     Long hostId) {
+                     Host host) {
 
         this.name = name;
         this.address = address;
@@ -42,7 +42,7 @@ public class Residence {
         this.floor = floor;
         this.available_from = available_from;
         this.available_to = available_to;
-        this.hostId = hostId;
+        this.host = host;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class Residence {
                 ", floor=" + floor +
                 ", available_from=" + available_from +
                 ", available_to=" + available_to +
-                ", hostId=" + hostId +
+                ", host=" + host +
                 '}';
     }
 }

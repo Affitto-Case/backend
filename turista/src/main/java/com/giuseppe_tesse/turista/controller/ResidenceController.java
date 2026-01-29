@@ -5,6 +5,7 @@ import java.util.List;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.model.Residence;
+import com.giuseppe_tesse.turista.service.HostService;
 import com.giuseppe_tesse.turista.service.ResidenceService;
 
 import io.javalin.Javalin;
@@ -15,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResidenceController implements Controller {
 
-    private final ResidenceService residenceService;
+    private  ResidenceService residenceService;
+
+    private HostService hostService;
 
     public ResidenceController(ResidenceService residenceService) {
         this.residenceService = residenceService;

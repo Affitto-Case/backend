@@ -36,7 +36,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             ps.setDouble(6, residence.getPrice_per_night());
             ps.setDate(7, DateConverter.toSqlDate(residence.getAvailable_from()));
             ps.setDate(8, DateConverter.toSqlDate(residence.getAvailable_to()));
-            ps.setLong(9, residence.getHostId());
+            ps.setLong(9, residence.getHost().getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -205,7 +205,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             ps.setDouble(6, residence.getPrice_per_night());
             ps.setDate(7, DateConverter.toSqlDate(residence.getAvailable_from()));
             ps.setDate(8, DateConverter.toSqlDate(residence.getAvailable_to()));
-            ps.setLong(9, residence.getHostId());
+            ps.setLong(9, residence.getHost().getId());
             ps.setLong(10, residence.getId());
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -310,8 +310,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         residence.setAvailable_to(DateConverter.date2LocalDate(rs.getDate("availability_end")));
         Host host = new Host();
         host.setId(rs.getLong("host_id"));
-        Long hostId = host.getId();
-        residence.setHostId(hostId);
+        residence.setHost(host);
         
         return residence;
     }

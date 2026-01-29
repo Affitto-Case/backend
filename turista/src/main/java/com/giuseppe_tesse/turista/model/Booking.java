@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -14,18 +14,18 @@ import java.util.Objects;
 public class Booking {
 
     private Long id;
-    private Long residenceId;
-    private Long userId;
+    private Residence residence;
+    private User user;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    public Booking(Long residenceId,
-                   Long userId,
+    public Booking(Residence residence,
+                   User user,
                    LocalDateTime startDate,
                    LocalDateTime endDate) {
 
-        this.residenceId = residenceId;
-        this.userId = userId;
+        this.residence = residence;
+        this.user = user;
         this.startDate = startDate;
         this.endDate = endDate;
     }

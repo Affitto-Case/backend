@@ -5,7 +5,6 @@ import com.giuseppe_tesse.turista.dao.UserDAO;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.exception.DuplicateHostException;
-import com.giuseppe_tesse.turista.exception.DuplicateUserException;
 import com.giuseppe_tesse.turista.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;

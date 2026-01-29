@@ -34,12 +34,12 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public Booking create(Booking booking) {
-        log.info("Creating new booking for user ID: {} and residence ID: {}", booking.getUserId(), booking.getResidenceId());
+        log.info("Creating new booking for user ID: {} and residence ID: {}", booking.getUser().getId(), booking.getResidence().getId());
         String sql = "INSERT INTO bookings (start_date, end_date, residence_id, user_id) VALUES (?, ?, ?, ?) RETURNING id";
         
-        if (existsOverlappingBooking(booking.getResidenceId(), booking.getStartDate(), booking.getEndDate())) {
+        if (existsOverlappingBooking(booking.getResidence().getId(), booking.getStartDate(), booking.getEndDate())) {
             log.warn("Booking creation failed: overlapping booking exists for residence ID: {} between {} and {}", 
-                     booking.getResidenceId(), booking.getStartDate(), booking.getEndDate());
+                     booking.getResidence().getId(), booking.getStartDate(), booking.getEndDate());
             throw new DuplicateBookingException(
                 "This residence is already booked for the selected dates"
             );
@@ -50,8 +50,8 @@ public class BookingDAOImpl implements BookingDAO {
             
             ps.setTimestamp(1, DateConverter.convertTimestampFromLocalDateTime(booking.getStartDate()));
             ps.setTimestamp(2, DateConverter.convertTimestampFromLocalDateTime(booking.getEndDate()));
-            ps.setLong(3, booking.getResidenceId());
-            ps.setLong(4, booking.getUserId());
+            ps.setLong(3, booking.getResidence().getId());
+            ps.setLong(4, booking.getUser().getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -66,7 +66,7 @@ public class BookingDAOImpl implements BookingDAO {
             return booking;
 
         } catch (SQLException e) {
-            log.error("Error creating booking for user ID: {} and residence ID: {}", booking.getUserId(), booking.getResidenceId(), e);
+            log.error("Error creating booking for user ID: {} and residence ID: {}", booking.getUser().getId(), booking.getResidence().getId(), e);
             throw new RuntimeException("Error creating booking", e);
         }
     }
@@ -164,8 +164,8 @@ public class BookingDAOImpl implements BookingDAO {
 
             ps.setTimestamp(1, DateConverter.convertTimestampFromLocalDateTime(booking.getStartDate()));
             ps.setTimestamp(2, DateConverter.convertTimestampFromLocalDateTime(booking.getEndDate()));
-            ps.setLong(3, booking.getResidenceId());
-            ps.setLong(4, booking.getUserId());
+            ps.setLong(3, booking.getResidence().getId());
+            ps.setLong(4, booking.getUser().getId());
             ps.setLong(5, booking.getId());
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -244,13 +244,13 @@ public class BookingDAOImpl implements BookingDAO {
         user.setFirstName(rs.getString("first_name"));
         user.setLastName(rs.getString("last_name"));
         user.setEmail(rs.getString("email"));
-        booking.setUserId(user.getId());
+        booking.setUser(user);
         
         Residence residence = new Residence();
         residence.setId(rs.getLong("residence_id"));
         residence.setName(rs.getString("residence_name"));
         residence.setAddress(rs.getString("residence_address"));
-        booking.setResidenceId(residence.getId());
+        booking.setResidence(residence);
         
         return booking;
     }

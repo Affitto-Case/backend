@@ -126,6 +126,19 @@ src/
 │ │ │ ├── ResidenceDAO.java
 │ │ │ ├── BookingDAO.java
 │ │ │ └── FeedbackDAO.java
+│ │ ├── dto/
+| | | ├── request/
+│ │ │ |  ├── UserRequestDTO.java
+│ │ │ |  ├── HostRequestDTO.java
+│ │ │ |  ├── ResidenceRequestDTO.java
+│ │ │ |  ├── BookingRequestDTO.java
+│ │ │ |  └── FeedbackRequestDTO.java
+| | | ├── response/
+│ │ │ |  ├── UserResponseDTO.java
+│ │ │ |  ├── HostResponseDTO.java
+│ │ │ |  ├── ResidenceResponseDTO.java
+│ │ │ |  ├── BookingResponseDTO.java
+│ │ │ |  └── FeedbackResponseDTO.java
 │ │ ├── router/
 │ │ │ └── Router.java
 │ │ ├── service/
