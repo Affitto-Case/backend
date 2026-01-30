@@ -12,6 +12,7 @@ import java.util.Optional;
 import com.giuseppe_tesse.turista.dao.BookingDAO;
 import com.giuseppe_tesse.turista.exception.DuplicateBookingException;
 import com.giuseppe_tesse.turista.model.Booking;
+import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
@@ -22,13 +23,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BookingDAOImpl implements BookingDAO {
 
-    private final String SELECT_ALL_JOIN = 
-        "SELECT b.id, b.start_date, b.end_date, b.residence_id, b.user_id, " +
-        "u.first_name, u.last_name, u.email, " +
-        "r.name AS residence_name, r.address AS residence_address " +
-        "FROM bookings b " +
-        "JOIN users u ON b.user_id = u.id " +
-        "JOIN residences r ON b.residence_id = r.id";
+private final String SELECT_ALL_JOIN =
+    "SELECT \n" +
+    "    b.id AS booking_id,\n" +
+    "    b.start_date,\n" +
+    "    b.end_date,\n" +
+    "    b.residence_id,\n" +
+    "    b.user_id AS guest_id,\n" +
+
+    "    h.user_id AS host_id,\n" +
+    "    h.host_code,\n" +
+
+    "    guest.first_name AS guest_first_name,\n" +
+    "    guest.last_name  AS guest_last_name,\n" +
+    "    guest.email      AS guest_email,\n" +
+
+    "    host_user.first_name AS host_first_name,\n" +
+    "    host_user.last_name  AS host_last_name,\n" +
+    "    host_user.email      AS host_email,\n" +
+
+    "    r.name    AS residence_name,\n" +
+    "    r.address AS residence_address,\n" +
+    "    r.price\n" +
+
+    "FROM bookings b\n" +
+    "JOIN users guest        ON b.user_id = guest.id\n" +
+    "JOIN residences r       ON b.residence_id = r.id\n" +
+    "JOIN hosts h            ON r.host_id = h.user_id\n" +
+    "JOIN users host_user    ON h.user_id = host_user.id";
+
 
 private final String BOOKINGS_TOTAL_BY_HOST=
                   "SELECT h.user_id, COUNT(b.id) AS total_bookings\n" +
@@ -160,12 +183,41 @@ private final String BOOKINGS_TOTAL_BY_HOST=
         }
     }
 
+    @Override
+    public Optional<Booking> findLastBookingByUserId(Long user_id){
+        log.info("Finding last booking for user ID: {}", user_id);
+        String sql = SELECT_ALL_JOIN + " WHERE guest.id = ? ORDER BY b.start_date DESC LIMIT 1" ;
+         try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, user_id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Booking booking = mapResultSetToBooking(rs);
+                    log.info("Successfully found booking with user ID: {}", user_id);
+                    return Optional.of(booking);
+                }
+            }
+            
+            log.warn("No booking found with user ID: {}", user_id);
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            log.error("Error finding booking by user ID: {}", user_id, e);
+            throw new RuntimeException("Error finding booking by ID", e);
+        }
+    }
+
 // ==================== UPDATE ====================
 
     @Override
     public Optional<Booking> update(Booking booking) {
         log.info("Updating booking with ID: {}", booking.getId());
-        String sql = "UPDATE bookings SET start_date = ?, end_date = ?, residence_id = ?, user_id = ? WHERE id = ? RETURNING id, start_date, end_date, residence_id, user_id";
+        String sql = "UPDATE bookings " +
+                    "SET start_date = ?, end_date = ?, residence_id = ?, user_id = ? " +
+                    "WHERE id = ? " +
+                    "RETURNING id, start_date, end_date, residence_id, user_id";
+
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -178,7 +230,7 @@ private final String BOOKINGS_TOTAL_BY_HOST=
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    Booking updatedBooking = mapResultSetToBooking(rs);
+                    Booking updatedBooking = getBookingById(rs.getLong("id"), conn);
                     log.info("Successfully updated booking with ID: {}", booking.getId());
                     return Optional.of(updatedBooking);
                 }
@@ -240,28 +292,42 @@ private final String BOOKINGS_TOTAL_BY_HOST=
 
 // ==================== UTILITY ====================
 
-    private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
-        Booking booking = new Booking();
-        booking.setId(rs.getLong("id"));
-        
-        booking.setStartDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("start_date")));
-        booking.setEndDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("end_date")));
-        
-        User user = new User();
-        user.setId(rs.getLong("user_id"));
-        user.setFirstName(rs.getString("first_name"));
-        user.setLastName(rs.getString("last_name"));
-        user.setEmail(rs.getString("email"));
-        booking.setUser(user);
-        
-        Residence residence = new Residence();
-        residence.setId(rs.getLong("residence_id"));
-        residence.setName(rs.getString("residence_name"));
-        residence.setAddress(rs.getString("residence_address"));
-        booking.setResidence(residence);
-        
-        return booking;
-    }
+   private Booking mapResultSetToBooking(ResultSet rs) throws SQLException {
+    Booking booking = new Booking();
+
+    booking.setId(rs.getLong("booking_id"));
+    booking.setStartDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("start_date")));
+    booking.setEndDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("end_date")));
+
+    // ----- Guest (user che prenota) -----
+    User guest = new User();
+    guest.setId(rs.getLong("guest_id"));
+    guest.setFirstName(rs.getString("guest_first_name"));
+    guest.setLastName(rs.getString("guest_last_name"));
+    guest.setEmail(rs.getString("guest_email"));
+    booking.setUser(guest);
+
+    // ----- Host -----
+    Host host = new Host();
+    host.setId(rs.getLong("host_id"));
+    host.setHost_code(rs.getString("host_code"));
+    host.setFirstName(rs.getString("host_first_name"));
+    host.setLastName(rs.getString("host_last_name"));
+    host.setEmail(rs.getString("host_email"));
+
+    // ----- Residence -----
+    Residence residence = new Residence();
+    residence.setId(rs.getLong("residence_id"));
+    residence.setName(rs.getString("residence_name"));
+    residence.setAddress(rs.getString("residence_address"));
+    residence.setPrice_per_night(rs.getDouble("price"));
+    residence.setHost(host);
+
+    booking.setResidence(residence);
+
+    return booking;
+}
+
 
     public boolean existsOverlappingBooking(Long residenceId, LocalDateTime start, LocalDateTime end) {
         log.debug("Checking for overlapping bookings for residence ID: {} between {} and {}", residenceId, start, end);
@@ -308,7 +374,7 @@ public int countTotalBookingsByHostCode(String hostCode) {
 
         try (ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
-                return rs.getInt("total_residences"); // Il conteggio dalla tua query
+                return rs.getInt("total_bookings"); 
             }
         }
         return 0; 
@@ -316,6 +382,21 @@ public int countTotalBookingsByHostCode(String hostCode) {
     } catch (SQLException e) {
         log.error("Error counting bookings for host: {}", hostCode, e);
         throw new RuntimeException("Error executing booking count", e);
+    }
+}
+
+private Booking getBookingById(long bookingId, Connection conn) throws SQLException {
+    String sql = SELECT_ALL_JOIN +"\nWHERE b.id = ?";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setLong(1, bookingId);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return mapResultSetToBooking(rs);
+            } else {
+                throw new SQLException("Booking not found with ID " + bookingId);
+            }
+        }
     }
 }
 

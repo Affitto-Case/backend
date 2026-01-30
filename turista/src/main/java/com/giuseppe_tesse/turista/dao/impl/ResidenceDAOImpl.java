@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
-import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.model.Host;
+import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
 import com.giuseppe_tesse.turista.util.DateConverter;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -141,7 +142,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public Optional<Residence> findByAddressAndFloor(String address, int floor) {
         log.info("Finding residence by address: {} and floor: {}", address, floor);
-        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE address = ? AND floor = ?";
+        String sql = SELECT_WITH_HOST+"WHERE r.address = ? AND floor = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -198,7 +199,14 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public Optional<Residence> update(Residence residence) {
         log.info("Updating residence with ID: {}", residence.getId());
-        String sql = "UPDATE residences SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=?, host_id=? WHERE id=? RETURNING id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id";
+        String sql = "UPDATE residences r\r\n" + //
+                        "SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=?\r\n" + //
+                        "FROM hosts h\r\n" + //
+                        "JOIN users u ON h.user_id = u.id\r\n" + //
+                        "WHERE r.id=?\r\n" + //
+                        "RETURNING r.id, r.name, r.address, r.number_of_rooms, r.number_of_beds, r.floor, r.price, r.availability_start, r.availability_end, r.host_id,\r\n" + //
+                        "          u.first_name, u.last_name, u.email, h.host_code\r\n" + //
+                        "";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -211,8 +219,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             ps.setDouble(6, residence.getPrice_per_night());
             ps.setDate(7, DateConverter.toSqlDate(residence.getAvailable_from()));
             ps.setDate(8, DateConverter.toSqlDate(residence.getAvailable_to()));
-            ps.setLong(9, residence.getHost().getId());
-            ps.setLong(10, residence.getId());
+            ps.setLong(9, residence.getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -321,8 +328,8 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         host.setLastName(rs.getString("last_name"));
         host.setEmail(rs.getString("email"));
         host.setHost_code(rs.getString("host_code"));
-        
         residence.setHost(host);
+        
         
         return residence;
     }

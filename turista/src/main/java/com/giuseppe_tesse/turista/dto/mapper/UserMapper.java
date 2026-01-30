@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.dto.mapper;
 import com.giuseppe_tesse.turista.dto.request.UserRequestDTO;
 import com.giuseppe_tesse.turista.dto.response.UserResponseDTO;
 import com.giuseppe_tesse.turista.model.User;
+import com.giuseppe_tesse.turista.util.PasswordHasher;
 
 public class UserMapper {
 
@@ -23,6 +24,7 @@ public class UserMapper {
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
         user.setEmail(dto.getEmail());
+        user.setPassword(PasswordHasher.hash(dto.getPassword()));
         user.setAddress(dto.getAddress());
         
         return user;

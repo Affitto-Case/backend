@@ -1,5 +1,6 @@
 package com.giuseppe_tesse.turista.service;
 
+import com.giuseppe_tesse.turista.dao.BookingDAO;
 import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.UserDAO;
 import com.giuseppe_tesse.turista.model.Host;
@@ -7,6 +8,8 @@ import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.exception.DuplicateHostException;
 import com.giuseppe_tesse.turista.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,10 +17,12 @@ import java.util.UUID;
 public class HostService {
     private final HostDAO hostDAO;
     private final UserDAO userDAO;
+    private final BookingDAO bookingDAO;
 
-    public HostService(HostDAO hostDAO, UserDAO userDAO) {
+    public HostService(HostDAO hostDAO, UserDAO userDAO,BookingDAO bookingDAO) {
         this.hostDAO = hostDAO;
         this.userDAO = userDAO;
+        this.bookingDAO = bookingDAO;
     }
 
     public Host createHost(Long userId) {
@@ -44,15 +49,28 @@ public class HostService {
     }
 
     public List<Host> getAllHosts() {
-        return hostDAO.findAll();
+        List<Host> hosts_tmp = hostDAO.findAll();
+        List<Host> hosts = new ArrayList<>();
+        for (Host host : hosts_tmp) {
+            int total = bookingDAO.countTotalBookingsByHostCode(host.getHost_code());
+            host.setTotal_bookings(total); 
+            hosts.add(host);
+        }
+        return hosts;
     }
 
     public Host getHostById(Long id) {
-        return hostDAO.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        Host host = hostDAO.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        int total = bookingDAO.countTotalBookingsByHostCode(host.getHost_code());
+        host.setTotal_bookings(total);
+        return host;
     }
 
     public Host getByHostCode(String host_code){
-        return hostDAO.findByHostCode(host_code).orElseThrow(() -> new UserNotFoundException(host_code));
+        Host host = hostDAO.findByHostCode(host_code).orElseThrow(() -> new UserNotFoundException(host_code));
+        int total = bookingDAO.countTotalBookingsByHostCode(host_code);
+        host.setTotal_bookings(total);
+        return host;
     }
 
 public void updateHostStatus(Host host) {

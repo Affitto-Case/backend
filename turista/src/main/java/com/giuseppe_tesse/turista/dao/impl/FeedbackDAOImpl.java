@@ -10,13 +10,42 @@ import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dao.FeedbackDAO;
 import com.giuseppe_tesse.turista.model.Feedback;
+import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
+import com.giuseppe_tesse.turista.util.DateConverter;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FeedbackDAOImpl implements FeedbackDAO {
+
+    private final String ALL_JOIN =
+        "SELECT \r\n" +
+        "    f.id AS id, \r\n" +
+        "    f.title AS title, \r\n" +
+        "    f.comment AS comment, \r\n" +
+        "    f.rating AS rating, \r\n" +
+        "\r\n" +
+        "    u.id AS user_id, \r\n" +
+        "    u.first_name AS first_name, \r\n" +
+        "    u.last_name AS last_name, \r\n" +
+        "    u.email AS email, \r\n" +
+        "\r\n" +
+        "    b.id AS booking_id, \r\n" +
+        "    b.start_date AS start_date, \r\n" +
+        "    b.end_date AS end_date, \r\n" +
+        "\r\n" +
+        "    r.id AS residence_id, \r\n" +
+        "    r.name AS residence_name, \r\n" +
+        "    r.address AS residence_address \r\n" +
+        "\r\n" +
+        "FROM feedbacks f \r\n" +
+        "JOIN bookings b ON f.booking_id = b.id \r\n" +
+        "JOIN users u ON f.user_id = u.id \r\n" +
+        "JOIN residences r ON b.residence_id = r.id";
+
 
 // ==================== CREATE ====================
 
@@ -57,7 +86,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
     @Override
     public List<Feedback> findAll() {
         log.info("Retrieving all feedbacks");
-        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks";
+        String sql = ALL_JOIN;
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -80,7 +109,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
     @Override
     public Optional<Feedback> findById(Long id) {
         log.info("Finding feedback by ID: {}", id);
-        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE id = ?";
+        String sql = ALL_JOIN +" WHERE f.id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -106,7 +135,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
     @Override
     public List<Feedback> findByUserId(Long userId) {
         log.info("Finding feedbacks for user ID: {}", userId);
-        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE user_id = ?";
+        String sql = ALL_JOIN+" WHERE u.id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -131,7 +160,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
     @Override
     public Optional<List<Feedback>> findByBookingId(Long bookingId) {
         log.info("Finding feedbacks for booking ID: {}", bookingId);
-        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE booking_id = ?";
+        String sql = ALL_JOIN+" WHERE b.id = ?";
         List<Feedback> feedbacks = new ArrayList<>();
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -161,7 +190,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
     @Override
     public Optional<Feedback> findByUserIdAndBookingId(Long userId, Long bookingId) {
         log.info("Finding feedback for user ID: {} and booking ID: {}", userId, bookingId);
-        String sql = "SELECT id, title, comment, rating, booking_id, user_id FROM feedbacks WHERE user_id = ? AND booking_id = ?";
+        String sql = ALL_JOIN+" WHERE u.id = ? AND b.id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -302,10 +331,21 @@ public class FeedbackDAOImpl implements FeedbackDAO {
         // Mapping degli ID relazionali (User e Booking)
         User user = new User();
         user.setId(rs.getLong("user_id"));
+        user.setFirstName(rs.getString("first_name"));
+        user.setLastName(rs.getString("last_name"));
+        user.setEmail(rs.getString("email"));
         feedback.setUser(user);
+
+        Residence residence = new Residence();
+        residence.setId(rs.getLong("residence_id"));
+        residence.setName(rs.getString("residence_name"));
+        residence.setAddress(rs.getString("residence_address"));
         
         Booking booking = new Booking();
         booking.setId(rs.getLong("booking_id"));
+        booking.setStartDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("start_date")));
+        booking.setEndDate(DateConverter.convertLocalDateTimeFromTimestamp(rs.getTimestamp("end_date")));
+        booking.setResidence(residence);
         feedback.setBooking(booking);
         
         return feedback;

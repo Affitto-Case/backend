@@ -20,6 +20,8 @@ public interface BookingDAO {
 
     List<Booking> findAll();
 
+    Optional<Booking> findLastBookingByUserId(Long residenceId);
+
 // ==================== UPDATE ====================
 
     Optional<Booking> update(Booking booking);

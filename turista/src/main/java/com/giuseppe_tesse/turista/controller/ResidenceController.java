@@ -7,6 +7,7 @@ import com.giuseppe_tesse.turista.dto.mapper.ResidenceMapper;
 import com.giuseppe_tesse.turista.dto.request.ResidenceRequestDTO;
 import com.giuseppe_tesse.turista.dto.response.ResidenceResponseDTO;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
+import com.giuseppe_tesse.turista.exception.HostNotFoundException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
@@ -36,7 +37,7 @@ public class ResidenceController implements Controller {
         app.get("/api/v1/residences", this::getAllResidences);
         app.get("/api/v1/residences/address/{address}/floor/{floor}", this::getResidenceByAddressAndFloor);
         app.get("/api/v1/residences/owner/{ownerId}", this::getResidencesByOwner);
-        app.get("/api/v1/residences/owner/{hostCode}", this::getResidencesByHostCode);
+        app.get("/api/v1/residences/owner/host_code/{hostCode}", this::getResidencesByHostCode);
         app.put("/api/v1/residences/{id}", this::updateResidence);
         app.delete("/api/v1/residences/{id}", this::deleteResidenceById);
         app.delete("/api/v1/residences/owner/{ownerId}", this::deleteResidencesByOwner);
@@ -119,6 +120,9 @@ public class ResidenceController implements Controller {
             log.info("Residences retrieved successfully for owner ID {}: {}", ownerId, responseDTOs);
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found for owner ID {}: {}", ownerId, e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        } catch (HostNotFoundException e){
+            log.error("Host not found with ID {}: {}", ownerId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }

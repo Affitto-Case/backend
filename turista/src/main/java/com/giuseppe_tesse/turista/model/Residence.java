@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,11 +17,20 @@ public class Residence {
     private Long id;
     private String name;
     private String address;
+
+    @JsonProperty("price")
     private double price_per_night;
+
+    @JsonProperty("numberOfRooms")
     private int number_of_rooms;
+    @JsonProperty("numberOfBeds")
     private int guest_capacity;
     private int floor;
+    
+    @JsonProperty("availabilityStart")
     private LocalDate available_from;
+
+    @JsonProperty("availabilityEnd")
     private LocalDate available_to;
     private Host host;
 

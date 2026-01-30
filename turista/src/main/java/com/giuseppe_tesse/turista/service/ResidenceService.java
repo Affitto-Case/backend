@@ -3,9 +3,12 @@ package com.giuseppe_tesse.turista.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
+import com.giuseppe_tesse.turista.exception.UserNotFoundException;
+import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ResidenceService {
 
     private final ResidenceDAO residenceDAO;
+    private final HostDAO hostDAO;
 
-    public ResidenceService(ResidenceDAO residenceDAO) {
+    public ResidenceService(ResidenceDAO residenceDAO,HostDAO hostDAO) {
         this.residenceDAO = residenceDAO;
+        this.hostDAO = hostDAO;
     }
 
     // ==================== CREATE ====================
@@ -47,7 +52,11 @@ public class ResidenceService {
 
     public List<Residence> getAllResidences() {
         log.info("Fetching all residences");
-        return residenceDAO.findAll();
+        if(!residenceDAO.findAll().isEmpty()){
+            return residenceDAO.findAll();
+        }else{
+            throw new ResidenceNotFoundException("No residence register");
+        }
     }
 
     public List<Residence> getResidencesByOwner(Long ownerId) {
@@ -73,10 +82,15 @@ public class ResidenceService {
                 });
     }
 
-    public List<Residence> getResidenceByHostCode(String code){
-        log.info("Fetching residence by host code: {}",code);
-        return residenceDAO.findByHostCode(code);
-    }
+public List<Residence> getResidenceByHostCode(String code) {
+    log.info("Fetching residences by host code: {}", code);
+
+    Host host = hostDAO.findByHostCode(code)
+        .orElseThrow(() -> new UserNotFoundException(code));
+
+    return residenceDAO.findByHostId(host.getId());
+}
+
 
     // ==================== UPDATE ====================
 

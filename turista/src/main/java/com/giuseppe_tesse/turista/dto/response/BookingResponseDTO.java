@@ -35,6 +35,5 @@ public class BookingResponseDTO {
     // Campi calcolati
     private Integer numberOfNights;  // Calcolato da startDate e endDate
     private Double totalPrice;       // numberOfNights * pricePerNight
-    private String status;           // "ACTIVE", "COMPLETED", "CANCELLED"
 
 }

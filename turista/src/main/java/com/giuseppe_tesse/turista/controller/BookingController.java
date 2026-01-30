@@ -41,6 +41,7 @@ public class BookingController implements Controller {
         app.get("/api/v1/bookings", this::getAllBookings);
         app.get("/api/v1/bookings/{id}", this::getBookingById);
         app.get("/api/v1/bookings/residence/{residenceId}", this::getBookingsByResidenceId);
+        app.get("/api/v1/bookings/user/{userId}/last",this::getLastBookingByUserId);
         app.put("/api/v1/bookings/{id}", this::updateBooking);
         app.delete("/api/v1/bookings/{id}", this::deleteBookingById);
         app.delete("/api/v1/bookings", this::deleteAllBookings);
@@ -109,6 +110,20 @@ public class BookingController implements Controller {
             log.info("Bookings retrieved successfully for residence ID {}, total: {}", residenceId, responseDTOs.size());
         } catch (BookingNotFoundException e) {
             log.error("Bookings not found for residence ID {}: {}", residenceId, e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        }
+    }
+
+    private void getLastBookingByUserId(Context ctx) {
+        Long id = Long.valueOf(ctx.pathParam("userId"));
+        log.info("GET /api/v1/bookings/user/{userId}/last - Request to fetch last booking by user ID", id);
+        try {
+            Booking booking = bookingService.getLastBookingByUserId(id);
+            BookingResponseDTO responseDTO = BookingMapper.toResponseDTO(booking);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Booking retrieved successfully: {}", id);
+        } catch (BookingNotFoundException e) {
+            log.error("Booking not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }

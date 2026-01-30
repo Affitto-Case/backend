@@ -162,6 +162,14 @@
 					}
 				},
 				{
+					"name": "Get Residences By Owner code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/residences/owner/host_code/HOST-f6e1e125"
+					}
+				},
+				{
 					"name": "Update Residence",
 					"request": {
 						"method": "PUT",
@@ -210,7 +218,7 @@
 						"header": [{"key": "Content-Type", "value": "application/json"}],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"startDate\": \"2025-07-10\",\n    \"endDate\": \"2025-07-15\",\n    \"residenceId\": 1,\n    \"userId\": 1\n}",
+							"raw": "{\n    \"startDate\": \"2025-07-10T15:30:00\",\n    \"endDate\": \"2025-07-15T11:00:00\",\n    \"residenceId\": 1,\n    \"userId\": 1\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": "http://localhost:8080/api/v1/bookings"
@@ -240,6 +248,14 @@
 						"url": "http://localhost:8080/api/v1/bookings/residence/1"
 					}
 				},
+								{
+					"name": "Get Last Booking By User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/bookings/user/1/last"
+					}
+				},
 				{
 					"name": "Update Booking",
 					"request": {
@@ -247,7 +263,7 @@
 						"header": [{"key": "Content-Type", "value": "application/json"}],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"startDate\": \"2025-07-12\",\n    \"endDate\": \"2025-07-18\",\n    \"residenceId\": 1,\n    \"userId\": 1\n}",
+							"raw": "{\n    \"startDate\": \"2025-07-10T15:30:00\",\n    \"endDate\": \"2025-07-15T11:00:00\",\n    \"residenceId\": 1,\n    \"userId\": 1\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": "http://localhost:8080/api/v1/bookings/1"
@@ -281,7 +297,7 @@
 						"header": [{"key": "Content-Type", "value": "application/json"}],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Soggiorno Magnifico\",\n    \"text\": \"Posto incantevole, tutto perfetto.\",\n    \"rating\": 5,\n    \"bookingId\": 1,\n    \"userId\": 1\n}",
+							"raw": "{\n    \"title\": \"Soggiorno Magnifico\",\n    \"comment\": \"Posto incantevole, tutto perfetto.\",\n    \"rating\": 5,\n    \"bookingId\": 1,\n    \"userId\": 1\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": "http://localhost:8080/api/v1/feedbacks"
@@ -334,7 +350,7 @@
 						"header": [{"key": "Content-Type", "value": "application/json"}],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Soggiorno Fantastico - Aggiornato\",\n    \"text\": \"Esperienza ancora migliore di quanto ricordassi. Assolutamente consigliato!\",\n    \"rating\": 5\n}",
+							"raw": "{\n    \"title\": \"Soggiorno Fantastico - Aggiornato\",\n    \"comment\": \"Esperienza ancora migliore di quanto ricordassi. Assolutamente consigliato!\",\n    \"rating\": 5\n}",
 							"options": { "raw": { "language": "json" } }
 						},
 						"url": "http://localhost:8080/api/v1/feedbacks/1"

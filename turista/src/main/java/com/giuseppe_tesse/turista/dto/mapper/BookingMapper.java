@@ -67,6 +67,7 @@ public class BookingMapper {
                     residence.getHost().getFirstName() + " " + 
                     residence.getHost().getLastName()
                 );
+                dto.setHostCode(residence.getHost().getHost_code());
             }
         }
         

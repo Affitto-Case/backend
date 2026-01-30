@@ -77,6 +77,12 @@ public class BookingService {
                 .orElseThrow(() -> new BookingNotFoundException(residenceId));
     }
 
+    public Booking getLastBookingByUserId(Long userId){
+        log.info("Fetching last booking for user ID: {}", userId);
+        return bookingDAO.findLastBookingByUserId(userId)
+                .orElseThrow(() -> new BookingNotFoundException(userId));
+    }
+
     // ==================== UPDATE ====================
 
     public Booking updateBooking(Booking booking) {
