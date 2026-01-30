@@ -18,6 +18,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResidenceDAOImpl implements ResidenceDAO {
 
+    private final String SELECT_WITH_HOST = 
+        "SELECT r.*, u.first_name, u.last_name, u.email, h.host_code " +
+        "FROM residences r " +
+        "JOIN hosts h ON r.host_id = h.user_id " +
+        "JOIN users u ON h.user_id = u.id ";
+
 // ==================== CREATE ====================
 
     @Override
@@ -62,11 +68,10 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public List<Residence> findAll() {
         log.info("Retrieving all residences");
-        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences";
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
+             PreparedStatement ps = conn.prepareStatement(SELECT_WITH_HOST);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -85,7 +90,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public List<Residence> findByHostId(Long hostId) {
         log.info("Retrieving residences for host ID: {}", hostId);
-        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE host_id = ?";
+        String sql = SELECT_WITH_HOST + " WHERE r.host_id = ?";
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -110,7 +115,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public Optional<Residence> findById(Long id) {
         log.info("Finding residence by ID: {}", id);
-        String sql = "SELECT id, name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id FROM residences WHERE id = ?";
+        String sql = SELECT_WITH_HOST + " WHERE r.id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -298,7 +303,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
 
 // ==================== UTILITY ====================
 
-    private Residence mapResultSetToResidence(ResultSet rs) throws SQLException {
+   private Residence mapResultSetToResidence(ResultSet rs) throws SQLException {
         Residence residence = new Residence();
         residence.setId(rs.getLong("id"));
         residence.setName(rs.getString("name"));
@@ -309,11 +314,16 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         residence.setPrice_per_night(rs.getDouble("price"));
         residence.setAvailable_from(DateConverter.date2LocalDate(rs.getDate("availability_start")));
         residence.setAvailable_to(DateConverter.date2LocalDate(rs.getDate("availability_end")));
+        
         Host host = new Host();
         host.setId(rs.getLong("host_id"));
+        host.setFirstName(rs.getString("first_name"));
+        host.setLastName(rs.getString("last_name"));
+        host.setEmail(rs.getString("email"));
+        host.setHost_code(rs.getString("host_code"));
+        
         residence.setHost(host);
         
         return residence;
     }
-
 }

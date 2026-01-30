@@ -30,13 +30,13 @@ public class BookingDAOImpl implements BookingDAO {
         "JOIN users u ON b.user_id = u.id " +
         "JOIN residences r ON b.residence_id = r.id";
 
-private final String BOOKINGS_TOTAL_BY_HOST="SELECT h.user_id, COUNT(b.id) AS total_bookings\n" + //
-                  "FROM hosts h\n" + //
-                  "JOIN residences r ON h.user_id = r.host_id\n" + //
-                  "JOIN bookings b ON r.id = b.residence_id\n" + //
-                  "WHERE h.host_code = ?\n" + //
-                  "GROUP BY h.user_id;\n" + //
-                  "";
+private final String BOOKINGS_TOTAL_BY_HOST=
+                  "SELECT h.user_id, COUNT(b.id) AS total_bookings\n" +
+                  "FROM hosts h\n" +
+                  "JOIN residences r ON h.user_id = r.host_id\n" + 
+                  "JOIN bookings b ON r.id = b.residence_id\n" + 
+                  "WHERE h.host_code = ?\n" + 
+                  "GROUP BY h.user_id;\n";
 
 // ==================== CREATE ====================
 
