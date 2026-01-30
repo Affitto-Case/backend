@@ -10,5 +10,6 @@ public interface HostDAO {
     Optional<Host> findById(Long id);
     Optional<Host> findByHostCode(String hostCode);
     Optional<Host> update(Host host);
+    void updateSuperHostStatus(Long hostId, boolean isSuper);
     boolean deleteById(Long id);
 }

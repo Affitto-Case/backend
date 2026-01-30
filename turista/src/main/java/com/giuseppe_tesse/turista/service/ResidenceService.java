@@ -6,7 +6,6 @@ import java.util.List;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
-import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 
 import lombok.extern.slf4j.Slf4j;

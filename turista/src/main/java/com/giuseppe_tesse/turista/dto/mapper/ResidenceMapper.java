@@ -5,8 +5,6 @@ import com.giuseppe_tesse.turista.dto.response.ResidenceResponseDTO;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 
-import java.time.LocalDate;
-
 public class ResidenceMapper {
 
     // ==================== REQUEST DTO → ENTITY ====================
@@ -72,96 +70,6 @@ public class ResidenceMapper {
         }
         
         return dto;
-    }
-
-    // ==================== UTILITY METHODS ====================
-    
-    /**
-     * Aggiorna un'entità Residence esistente con i dati del DTO
-     * 
-     * @param existingResidence Residence entity esistente
-     * @param dto ResidenceRequestDTO con i nuovi dati
-     * @return Residence entity aggiornata
-     */
-    public static Residence updateEntity(Residence existingResidence, ResidenceRequestDTO dto) {
-        if (existingResidence == null || dto == null) {
-            return existingResidence;
-        }
-        
-        if (dto.getName() != null) {
-            existingResidence.setName(dto.getName());
-        }
-        
-        if (dto.getAddress() != null) {
-            existingResidence.setAddress(dto.getAddress());
-        }
-        
-        if (dto.getPricePerNight() != null) {
-            existingResidence.setPrice_per_night(dto.getPricePerNight());
-        }
-        
-        if (dto.getNumberOfRooms() != null) {
-            existingResidence.setNumber_of_rooms(dto.getNumberOfRooms());
-        }
-        
-        if (dto.getGuestCapacity() != null) {
-            existingResidence.setGuest_capacity(dto.getGuestCapacity());
-        }
-        
-        if (dto.getFloor() != null) {
-            existingResidence.setFloor(dto.getFloor());
-        }
-        
-        if (dto.getAvailableFrom() != null) {
-            existingResidence.setAvailable_from(dto.getAvailableFrom());
-        }
-        
-        if (dto.getAvailableTo() != null) {
-            existingResidence.setAvailable_to(dto.getAvailableTo());
-        }
-        
-        return existingResidence;
-    }
-    
-    /**
-     * Versione semplificata per liste
-     */
-    public static ResidenceResponseDTO toResponseDTOSimple(Residence residence) {
-        if (residence == null) {
-            return null;
-        }
-        
-        ResidenceResponseDTO dto = new ResidenceResponseDTO();
-        
-        dto.setId(residence.getId());
-        dto.setName(residence.getName());
-        dto.setAddress(residence.getAddress());
-        dto.setPricePerNight(residence.getPrice_per_night());
-        dto.setGuestCapacity(residence.getGuest_capacity());
-        
-        if (residence.getHost() != null) {
-            dto.setHostName(residence.getHost().getFirstName() + " " + residence.getHost().getLastName());
-        }
-        
-        return dto;
-    }
-    
-    /**
-     * Verifica se la residence è disponibile in una certa data
-     */
-    public static boolean isAvailableOn(Residence residence, LocalDate date) {
-        if (residence == null || date == null) {
-            return false;
-        }
-        
-        LocalDate from = residence.getAvailable_from();
-        LocalDate to = residence.getAvailable_to();
-        
-        if (from == null || to == null) {
-            return false;
-        }
-        
-        return !date.isBefore(from) && !date.isAfter(to);
     }
     
     /**

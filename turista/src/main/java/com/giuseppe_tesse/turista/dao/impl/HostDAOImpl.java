@@ -202,4 +202,19 @@ public class HostDAOImpl implements HostDAO {
         
         return host;
     }
+
+@Override
+public void updateSuperHostStatus(Long hostId, boolean isSuper) {
+    String sql = "UPDATE hosts SET is_superhost = ? WHERE user_id = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setBoolean(1, isSuper);
+        ps.setLong(2, hostId);
+        ps.executeUpdate();
+        log.info("Database updated: Host {} is now SuperHost={}", hostId, isSuper);
+    } catch (SQLException e) {
+        log.error("Error updating superhost status for host: {}", hostId, e);
+        throw new RuntimeException("DB Error", e);
+    }
+}
 }

@@ -35,9 +35,9 @@ public class Router {
         // 2. Inizializzazione Service (Dependency Injection)
         UserService userService = new UserService(userDAO);
         ResidenceService residenceService = new ResidenceService(residenceDAO);
-        BookingService bookingService = new BookingService(bookingDAO);
         FeedbackService feedbackService = new FeedbackService(feedbackDAO);
         HostService hostService = new HostService(hostDAO, userDAO);
+        BookingService bookingService = new BookingService(bookingDAO,residenceDAO,hostService);
 
         // 3. Registrazione dei Controller nella lista
         List<Controller> controllers = List.of(

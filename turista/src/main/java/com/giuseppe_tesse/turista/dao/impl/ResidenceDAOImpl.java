@@ -23,7 +23,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public Residence create(Residence residence) {
         log.info("Creating new residence: {}", residence.getName());
-        String sql = "INSERT INTO residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id";
+        String sql = "INSERT INTO residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id,host_id";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -42,6 +42,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                 if (rs.next()) {
                     residence.setId(rs.getLong("id"));
                     log.info("Residence created successfully with ID: {}", residence.getId());
+                    
                 } else {
                     log.error("Creating residence failed, no ID obtained");
                     throw new SQLException("Creating residence failed, no ID obtained.");

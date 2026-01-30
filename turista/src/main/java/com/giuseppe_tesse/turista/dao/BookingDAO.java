@@ -23,6 +23,7 @@ public interface BookingDAO {
 // ==================== UPDATE ====================
 
     Optional<Booking> update(Booking booking);
+    int countTotalBookingsByHostCode(String hostCode);
 
 // ==================== DELETE ====================
 

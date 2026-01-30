@@ -77,64 +77,6 @@ public class FeedbackMapper {
         
         return dto;
     }
-
-    // ==================== UTILITY METHODS ====================
-    
-    /**
-     * Aggiorna un'entità Feedback esistente con i dati del DTO
-     * 
-     * @param existingFeedback Feedback entity esistente
-     * @param dto FeedbackRequestDTO con i nuovi dati
-     * @return Feedback entity aggiornata
-     */
-    public static Feedback updateEntity(Feedback existingFeedback, FeedbackRequestDTO dto) {
-        if (existingFeedback == null || dto == null) {
-            return existingFeedback;
-        }
-        
-        if (dto.getTitle() != null) {
-            existingFeedback.setTitle(dto.getTitle());
-        }
-        
-        if (dto.getRating() != null) {
-            existingFeedback.setRating(dto.getRating());
-        }
-        
-        if (dto.getComment() != null) {
-            existingFeedback.setComment(dto.getComment());
-        }
-        
-        // NON aggiornare user e booking
-        
-        return existingFeedback;
-    }
-    
-    /**
-     * Versione semplificata per liste
-     */
-    public static FeedbackResponseDTO toResponseDTOSimple(Feedback feedback) {
-        if (feedback == null) {
-            return null;
-        }
-        
-        FeedbackResponseDTO dto = new FeedbackResponseDTO();
-        
-        dto.setId(feedback.getId());
-        dto.setTitle(feedback.getTitle());
-        dto.setRating(feedback.getRating());
-        
-        if (feedback.getUser() != null) {
-            dto.setUserFirstName(feedback.getUser().getFirstName());
-            dto.setUserLastName(feedback.getUser().getLastName());
-        }
-        
-        if (feedback.getBooking() != null && feedback.getBooking().getResidence() != null) {
-            dto.setResidenceName(feedback.getBooking().getResidence().getName());
-        }
-        
-        return dto;
-    }
-    
     /**
      * Previene istanziazione
      */

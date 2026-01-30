@@ -50,4 +50,16 @@ public class HostService {
     public Host getHostById(Long id) {
         return hostDAO.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
+
+    public Host getByHostCode(String host_code){
+        return hostDAO.findByHostCode(host_code).orElseThrow(() -> new UserNotFoundException(host_code));
+    }
+
+public void updateHostStatus(Host host) {
+    log.info("Updating status for Host Code: {}. New SuperHost status: {}", 
+              host.getHost_code(), host.isSuperHost());
+    
+    hostDAO.updateSuperHostStatus(host.getId(), host.isSuperHost());
+}
+    
 }

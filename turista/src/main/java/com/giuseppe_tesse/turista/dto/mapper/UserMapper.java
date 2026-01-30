@@ -52,59 +52,6 @@ public class UserMapper {
         
         return dto;
     }
-
-    // ==================== UTILITY METHODS ====================
-    
-    /**
-     * Aggiorna un'entità User esistente con i dati del DTO
-     * 
-     * @param existingUser User entity esistente
-     * @param dto UserRequestDTO con i nuovi dati
-     * @return User entity aggiornata
-     */
-    public static User updateEntity(User existingUser, UserRequestDTO dto) {
-        if (existingUser == null || dto == null) {
-            return existingUser;
-        }
-        
-        if (dto.getFirstName() != null) {
-            existingUser.setFirstName(dto.getFirstName());
-        }
-        
-        if (dto.getLastName() != null) {
-            existingUser.setLastName(dto.getLastName());
-        }
-        
-        if (dto.getEmail() != null) {
-            existingUser.setEmail(dto.getEmail());
-        }
-        
-        if (dto.getAddress() != null) {
-            existingUser.setAddress(dto.getAddress());
-        }
-        
-        // Password gestita separatamente nel Service se necessario
-        
-        return existingUser;
-    }
-    
-    /**
-     * Versione semplificata per liste
-     */
-    public static UserResponseDTO toResponseDTOSimple(User user) {
-        if (user == null) {
-            return null;
-        }
-        
-        UserResponseDTO dto = new UserResponseDTO();
-        
-        dto.setUserId(user.getId());
-        dto.setUserFirstName(user.getFirstName());
-        dto.setUserLastName(user.getLastName());
-        dto.setUserEmail(user.getEmail());
-        
-        return dto;
-    }
     
     /**
      * Concatena firstName e lastName
