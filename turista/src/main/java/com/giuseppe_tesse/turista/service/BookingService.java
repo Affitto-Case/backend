@@ -24,36 +24,32 @@ public class BookingService {
 
     // ==================== CREATE ====================
 
-    public Booking createBooking(Residence residence,
-                                 User user,
-                                 LocalDateTime startDate,
-                                 LocalDateTime endDate) {
+    public Booking createBooking(Booking booking) {
+    log.info("Attempt to create booking - Residence: {}, User: {}, Start: {}, End: {}",
+            booking.getResidence(), booking.getUser(), booking.getStartDate(), booking.getEndDate());
 
-        log.info(
-            "Attempt to create booking - Residence : {}, User : {}, Start: {}, End: {}",
-            residence, user, startDate, endDate
-        );
+    // Recupero prenotazioni esistenti per validazione
+    List<Booking> existingBookings = bookingDAO.findByResidenceId(booking.getResidence().getId())
+            .orElseThrow(() -> new ResidenceNotFoundException(booking.getResidence().getId()));
 
-        List<Booking> existingBookings =
-                bookingDAO.findByResidenceId(residence.getId())
-                        .orElseThrow(() ->
-                                new ResidenceNotFoundException(residence.getId())
-                        );
-
-        for (Booking booking : existingBookings) {
-            if (startDate.isBefore(booking.getStartDate())
-                    && endDate.isAfter(booking.getEndDate())) {
-
-                throw new DuplicateBookingException(
-                        "A booking already exists for the selected period"
-                );
-            }
+    for (Booking existing : existingBookings) {
+        if (booking.getStartDate().isBefore(existing.getEndDate()) 
+            && booking.getEndDate().isAfter(existing.getStartDate())) {
+            
+            log.warn("Booking conflict detected for residence ID: {}", booking.getResidence().getId());
+            throw new DuplicateBookingException("A booking already exists for the selected period");
         }
-
-        Booking booking = new Booking(residence, user, startDate, endDate);
-        return bookingDAO.create(booking);
     }
 
+    Booking newBooking = new Booking(
+            booking.getResidence(), 
+            booking.getUser(), 
+            booking.getStartDate(), 
+            booking.getEndDate()
+    );
+    
+    return bookingDAO.create(newBooking);
+}
     // ==================== READ ====================
 
     public List<Booking> getAllBookings() {

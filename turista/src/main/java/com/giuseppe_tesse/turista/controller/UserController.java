@@ -11,6 +11,11 @@ import io.javalin.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.giuseppe_tesse.turista.dto.mapper.UserMapper;
+import com.giuseppe_tesse.turista.dto.request.UserRequestDTO;
+import com.giuseppe_tesse.turista.dto.response.UserResponseDTO;
 
 @Slf4j
 public class UserController implements Controller {
@@ -36,18 +41,13 @@ public class UserController implements Controller {
     // ==================== CREATE ====================
     private void createUser(Context ctx) {
         log.info("POST /api/v1/users - Request to create user");
-        User user = ctx.bodyAsClass(User.class); // Corretto da Utente.class
-
         try {
-            User createdUser = userService.createUser(
-                    user.getFirstName(),
-                    user.getLastName(),
-                    user.getEmail(),
-                    user.getPassword(),
-                    user.getAddress()
-            );
-            ctx.status(HttpStatus.CREATED).json(createdUser);
-            log.info("User created successfully: {}", createdUser);
+            UserRequestDTO requestDTO = ctx.bodyAsClass(UserRequestDTO.class);
+            User user= UserMapper.toEntity(requestDTO);
+            User createdUser = userService.createUser(user);
+            UserResponseDTO responseDTO = UserMapper.toResponseDTO(createdUser);
+            ctx.status(HttpStatus.CREATED).json(responseDTO);
+            log.info("User created successfully: {}", createdUser.getId());
         } catch (DuplicateUserException e) {
             log.error("Error creating user: {}", e.getMessage());
             ctx.status(HttpStatus.CONFLICT).result(e.getMessage());
@@ -60,8 +60,9 @@ public class UserController implements Controller {
         log.info("GET /api/v1/users/{} - Request to fetch user by ID", id);
         try {
             User user = userService.getUserById(id);
-            ctx.status(HttpStatus.OK).json(user);
-            log.info("User retrieved successfully: {}", user);
+            UserResponseDTO responseDTO = UserMapper.toResponseDTO(user);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("User retrieved successfully: {}", id);
         } catch (UserNotFoundException e) {
             log.error("User not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -70,9 +71,15 @@ public class UserController implements Controller {
 
     private void getAllUsers(Context ctx) {
         log.info("GET /api/v1/users - Request to fetch all users");
-        List<User> users = userService.getAllUsers();
-        ctx.status(HttpStatus.OK).json(users);
-        log.info("All users retrieved successfully, total: {}", users.size());
+        try {
+            List<User> users = userService.getAllUsers();
+            List<UserResponseDTO> responseDTOs = users.stream()
+                .map(UserMapper::toResponseDTO)
+                .collect(Collectors.toList());
+            ctx.status(HttpStatus.OK).json(responseDTOs);
+            log.info("All users retrieved successfully, total: {}", responseDTOs.size()); 
+        } catch (Exception e) {
+        }
     }
 
     private void getUserByEmail(Context ctx) {
@@ -80,8 +87,9 @@ public class UserController implements Controller {
         log.info("GET /api/v1/users/email/{} - Request to fetch user by email", email);
         try {
             User user = userService.getUserByEmail(email);
-            ctx.status(HttpStatus.OK).json(user);
-            log.info("User retrieved successfully: {}", user);
+            UserResponseDTO responseDTO = UserMapper.toResponseDTO(user);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("User retrieved successfully: {}", user.getId());
         } catch (UserNotFoundException e) {
             log.error("User not found with email {}: {}", email, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -92,15 +100,28 @@ public class UserController implements Controller {
     private void updateUser(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("PUT /api/v1/users/{} - Request to update user", id);
-        User userUpdates = ctx.bodyAsClass(User.class);
-        
-        // Assicuriamoci che l'ID del corpo o del path sia coerente
-        userUpdates.setId(id);
-
         try {
-            User updatedUser = userService.updateUser(userUpdates);
-            ctx.status(HttpStatus.OK).json(updatedUser);
-            log.info("User updated successfully: {}", updatedUser);
+            UserRequestDTO requestDTO = ctx.bodyAsClass(UserRequestDTO.class);
+            User existingUser = userService.getUserById(id);
+            if (requestDTO.getFirstName() != null){
+                existingUser.setFirstName(requestDTO.getFirstName());
+            }
+            if (requestDTO.getLastName() != null){
+                 existingUser.setLastName(requestDTO.getLastName());
+            }
+            if (requestDTO.getEmail() != null){
+                 existingUser.setEmail(requestDTO.getEmail());
+            }
+            if (requestDTO.getPassword() != null){
+                existingUser.setPassword(userService.hashPassword(requestDTO.getPassword()));
+            }
+            if (requestDTO.getAddress() != null){
+                 existingUser.setAddress(requestDTO.getAddress());
+            }
+            User updatedUser = userService.updateUser(existingUser);
+            UserResponseDTO responseDTO = UserMapper.toResponseDTO(updatedUser);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("User updated successfully: {}", updatedUser.getId());
         } catch (UserNotFoundException e) {
             log.error("User not found for update: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());

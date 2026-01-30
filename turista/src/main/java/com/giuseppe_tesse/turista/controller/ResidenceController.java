@@ -1,9 +1,14 @@
 package com.giuseppe_tesse.turista.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.mapper.ResidenceMapper;
+import com.giuseppe_tesse.turista.dto.request.ResidenceRequestDTO;
+import com.giuseppe_tesse.turista.dto.response.ResidenceResponseDTO;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
+import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.service.HostService;
 import com.giuseppe_tesse.turista.service.ResidenceService;
@@ -16,12 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResidenceController implements Controller {
 
-    private  ResidenceService residenceService;
+    private final ResidenceService residenceService;
+    private final HostService hostService;
 
-    private HostService hostService;
-
-    public ResidenceController(ResidenceService residenceService) {
+    public ResidenceController(ResidenceService residenceService,HostService hostService) {
         this.residenceService = residenceService;
+        this.hostService = hostService;
     }
 
     @Override
@@ -41,23 +46,14 @@ public class ResidenceController implements Controller {
     // ==================== CREATE ====================
     private void createResidence(Context ctx) {
         log.info("POST /api/v1/residences - Request to create residence");
-        Residence residence = ctx.bodyAsClass(Residence.class);
-        Long hostId = Long.valueOf(ctx.pathParam("hostId"));
-
         try {
-            Residence createdResidence = residenceService.createResidence(
-                    residence.getName(),
-                    residence.getAddress(),
-                    residence.getPrice_per_night(),
-                    residence.getNumber_of_rooms(),
-                    residence.getGuest_capacity(),
-                    residence.getFloor(),
-                    residence.getAvailable_from(),
-                    residence.getAvailable_to(),
-                    hostId
-            );
-            ctx.status(HttpStatus.CREATED).json(createdResidence);
-            log.info("Residence successfully created: {}", createdResidence);
+            ResidenceRequestDTO requestDTO = ctx.bodyAsClass(ResidenceRequestDTO.class);
+            Host host = hostService.getHostById(requestDTO.getHostId());
+            Residence residence = ResidenceMapper.toEntity(requestDTO,host);
+            Residence createdResidence = residenceService.createResidence(residence);
+            ResidenceResponseDTO responseDTO= ResidenceMapper.toResponseDTO(createdResidence);
+            ctx.status(HttpStatus.CREATED).json(responseDTO);
+            log.info("Residence successfully created: {}", createdResidence.getId());
         } catch (DuplicateResidenceException e) {
             log.error("Failed to create residence: {}", e.getMessage());
             ctx.status(HttpStatus.CONFLICT).result(e.getMessage());
@@ -68,11 +64,11 @@ public class ResidenceController implements Controller {
     private void getResidenceById(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("GET /api/v1/residences/{} - Request to fetch residence by ID", id);
-
         try {
             Residence residence = residenceService.getResidenceById(id);
-            ctx.status(HttpStatus.OK).json(residence);
-            log.info("Residence retrieved successfully: {}", residence);
+            ResidenceResponseDTO responseDTO = ResidenceMapper.toResponseDTO(residence);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Residence retrieved successfully: {}", id);
         } catch (ResidenceNotFoundException e) {
             log.error("Residence not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -83,8 +79,11 @@ public class ResidenceController implements Controller {
         log.info("GET /api/v1/residences - Request to fetch all residences");
         try {
             List<Residence> residences = residenceService.getAllResidences();
-            ctx.status(HttpStatus.OK).json(residences);
-            log.info("All residences retrieved successfully, count: {}", residences.size());
+            List<ResidenceResponseDTO> responseDTOs = residences.stream()
+                    .map(ResidenceMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+             ctx.status(HttpStatus.OK).json(responseDTOs);
+            log.info("All residences retrieved successfully, count: {}", responseDTOs.size());
         } catch (Exception e) {
             log.error("Error fetching residences: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
@@ -98,8 +97,9 @@ public class ResidenceController implements Controller {
 
         try {
             Residence residence = residenceService.getResidenceByAddressAndFloor(address, floor);
-            ctx.status(HttpStatus.OK).json(residence);
-            log.info("Residence retrieved successfully: {}", residence);
+            ResidenceResponseDTO responseDTO = ResidenceMapper.toResponseDTO(residence);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Residence retrieved successfully: {}", residence.getId());
         } catch (ResidenceNotFoundException e) {
             log.error("Residence not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -112,8 +112,11 @@ public class ResidenceController implements Controller {
 
         try {
             List<Residence> residences = residenceService.getResidencesByOwner(ownerId);
-            ctx.status(HttpStatus.OK).json(residences);
-            log.info("Residences retrieved successfully for owner ID {}: {}", ownerId, residences);
+            List<ResidenceResponseDTO> responseDTOs = residences.stream()
+                    .map(ResidenceMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+            ctx.status(HttpStatus.OK).json(responseDTOs);
+            log.info("Residences retrieved successfully for owner ID {}: {}", ownerId, responseDTOs);
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found for owner ID {}: {}", ownerId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -126,8 +129,11 @@ public class ResidenceController implements Controller {
 
         try{
             List<Residence> residences = residenceService.getResidenceByHostCode(host_code);
-            ctx.status(HttpStatus.OK).json(residences);
-            log.info("Residences retrieved successfully for host code {}: {}", host_code, residences);
+            List<ResidenceResponseDTO> responseDTOs = residences.stream()
+                    .map(ResidenceMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+            ctx.status(HttpStatus.OK).json(responseDTOs);
+            log.info("Residences retrieved successfully for host code {}: {}", host_code, responseDTOs);
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found for host code {}: {}", host_code, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -139,10 +145,7 @@ public class ResidenceController implements Controller {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("PUT /api/v1/residences/{} - Request to update residence", id);
         Residence residenceUpdates = ctx.bodyAsClass(Residence.class);
-        
-        // Assicuriamoci che l'ID del path sia impostato nell'oggetto
         residenceUpdates.setId(id);
-
         try {
             Residence updatedResidence = residenceService.updateResidence(residenceUpdates);
             ctx.status(HttpStatus.OK).json(updatedResidence);

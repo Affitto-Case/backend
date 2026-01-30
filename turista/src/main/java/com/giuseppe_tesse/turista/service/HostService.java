@@ -28,7 +28,6 @@ public class HostService {
         if(hostDAO.findById(userId).isPresent()){
             log.warn("Host creation failed - Host already exists: {}", userId);
             throw new DuplicateHostException("userId", ""+userId);
-
         }
         
         Host host = new Host();
@@ -36,6 +35,7 @@ public class HostService {
         host.setFirstName(user.getFirstName());
         host.setLastName(user.getLastName());
         host.setEmail(user.getEmail());
+        host.setPassword(user.getPassword());
         host.setRegistrationDate(user.getRegistrationDate());
         host.setHost_code("HOST-" + UUID.randomUUID().toString().substring(0, 8));
         host.setTotal_bookings(0);

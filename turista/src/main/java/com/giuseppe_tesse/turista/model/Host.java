@@ -14,6 +14,7 @@ public class Host extends User {
 
     private String host_code;
     private int total_bookings;
+    private boolean isSuperHost;
 
     public Host(String first_name,
                 String last_name,
@@ -27,6 +28,7 @@ public class Host extends User {
         super(first_name, last_name, email, password, address, registration_date);
         this.host_code = host_code;
         this.total_bookings = total_bookings;
+        isSuperHost=false;
     }
 
     @Override

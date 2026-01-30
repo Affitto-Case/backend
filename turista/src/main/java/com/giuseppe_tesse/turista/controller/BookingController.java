@@ -1,11 +1,21 @@
 package com.giuseppe_tesse.turista.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.mapper.BookingMapper;
+import com.giuseppe_tesse.turista.dto.request.BookingRequestDTO;
+import com.giuseppe_tesse.turista.dto.response.BookingResponseDTO;
 import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.DuplicateBookingException;
+import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
+import com.giuseppe_tesse.turista.exception.UserNotFoundException;
 import com.giuseppe_tesse.turista.model.Booking;
+import com.giuseppe_tesse.turista.model.Residence;
+import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.service.BookingService;
+import com.giuseppe_tesse.turista.service.ResidenceService;
+import com.giuseppe_tesse.turista.service.UserService;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -16,9 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 public class BookingController implements Controller {
 
     private final BookingService bookingService;
-
-    public BookingController(BookingService bookingService) {
+    private final ResidenceService residenceService;
+    private final UserService userService;
+    
+    public BookingController(BookingService bookingService,ResidenceService residenceService,UserService userService) {
         this.bookingService = bookingService;
+        this.residenceService = residenceService;
+        this.userService = userService;
     }
 
     @Override
@@ -35,20 +49,24 @@ public class BookingController implements Controller {
     // ==================== CREATE ====================
     private void createBooking(Context ctx) {
         log.info("POST /api/v1/bookings - Request to create booking");
-        Booking booking = ctx.bodyAsClass(Booking.class);
-
         try {
-            Booking createdBooking = bookingService.createBooking(
-                    booking.getResidenceId(),
-                    booking.getUserId(),
-                    booking.getStartDate(),
-                    booking.getEndDate()
-            );
-            ctx.status(HttpStatus.CREATED).json(createdBooking);
-            log.info("Booking created successfully: {}", createdBooking);
+            BookingRequestDTO requestDTO = ctx.bodyAsClass(BookingRequestDTO.class);
+            Residence residence = residenceService.getResidenceById(requestDTO.getResidenceId());
+            User user = userService.getUserById(requestDTO.getUserId());
+            Booking booking = BookingMapper.toEntity(requestDTO, user, residence);
+            Booking createdBooking = bookingService.createBooking(booking);
+            BookingResponseDTO responseDTO = BookingMapper.toResponseDTO(createdBooking);
+            ctx.status(HttpStatus.CREATED).json(responseDTO);
+            log.info("Booking created successfully: {}", createdBooking.getId());
+        } catch (ResidenceNotFoundException | UserNotFoundException e) {
+            log.error("Error creating booking: {}", e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         } catch (DuplicateBookingException e) {
             log.error("Error creating booking: {}", e.getMessage());
             ctx.status(HttpStatus.CONFLICT).result(e.getMessage());
+        } catch (Exception e){
+            log.error("Error creating booking: {}", e.getMessage());
+            ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
         }
     }
 
@@ -56,17 +74,23 @@ public class BookingController implements Controller {
     private void getAllBookings(Context ctx) {
         log.info("GET /api/v1/bookings - Request to fetch all bookings");
         List<Booking> bookings = bookingService.getAllBookings();
-        ctx.status(HttpStatus.OK).json(bookings);
-        log.info("All bookings retrieved successfully, total: {}", bookings.size());
+        List<BookingResponseDTO> responseDTOs = bookings.stream()
+                .map(BookingMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        ctx.status(HttpStatus.OK).json(responseDTOs);
+        log.info("All bookings retrieved successfully, total: {}", responseDTOs.size());
     }
+
+    
 
     private void getBookingById(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("GET /api/v1/bookings/{} - Request to fetch booking by ID", id);
         try {
             Booking booking = bookingService.getBookingById(id);
-            ctx.status(HttpStatus.OK).json(booking);
-            log.info("Booking retrieved successfully: {}", booking);
+            BookingResponseDTO responseDTO = BookingMapper.toResponseDTO(booking);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Booking retrieved successfully: {}", id);
         } catch (BookingNotFoundException e) {
             log.error("Booking not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -78,8 +102,11 @@ public class BookingController implements Controller {
         log.info("GET /api/v1/bookings/residence/{} - Request to fetch bookings by residence ID", residenceId);
         try {
             List<Booking> bookings = bookingService.getBookingsByResidenceId(residenceId);
-            ctx.status(HttpStatus.OK).json(bookings);
-            log.info("Bookings retrieved successfully for residence ID {}, total: {}", residenceId, bookings.size());
+            List<BookingResponseDTO> responseDTOs = bookings.stream()
+                    .map(BookingMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+            ctx.status(HttpStatus.OK).json(responseDTOs);
+            log.info("Bookings retrieved successfully for residence ID {}, total: {}", residenceId, responseDTOs.size());
         } catch (BookingNotFoundException e) {
             log.error("Bookings not found for residence ID {}: {}", residenceId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -90,17 +117,18 @@ public class BookingController implements Controller {
     private void updateBooking(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("PUT /api/v1/bookings/{} - Request to update booking", id);
-        Booking bookingUpdates = ctx.bodyAsClass(Booking.class);
 
         try {
             // Recupero l'oggetto esistente per poi aggiornarlo
-            Booking existingBooking = bookingService.getBookingById(id);
-            existingBooking.setStartDate(bookingUpdates.getStartDate());
-            existingBooking.setEndDate(bookingUpdates.getEndDate());
+            BookingRequestDTO requestDTO = ctx.bodyAsClass(BookingRequestDTO.class);
 
+            Booking existingBooking = bookingService.getBookingById(id);
+            existingBooking.setStartDate(requestDTO.getStartDate());
+            existingBooking.setEndDate(requestDTO.getEndDate());
             Booking updatedBooking = bookingService.updateBooking(existingBooking);
-            ctx.status(HttpStatus.OK).json(updatedBooking);
-            log.info("Booking updated successfully: {}", updatedBooking);
+            BookingResponseDTO responseDTO = BookingMapper.toResponseDTO(updatedBooking);
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Booking updated successfully: {}", id);
         } catch (BookingNotFoundException e) {
             log.error("Error updating booking: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());

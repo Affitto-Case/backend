@@ -28,7 +28,7 @@ public interface FeedbackDAO {
 // ==================== UPDATE ====================
 
     // Aggiorna il commento di un feedback esistente
-    Optional<Feedback> updateComment(Feedback feedback);
+    Optional<Feedback> update(Feedback feedback);
 
 // ==================== DELETE ====================
 

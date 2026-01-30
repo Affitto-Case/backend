@@ -189,7 +189,7 @@ public class FeedbackDAOImpl implements FeedbackDAO {
 // ==================== UPDATE ====================
 
     @Override
-    public Optional<Feedback> updateComment(Feedback feedback) {
+    public Optional<Feedback> update(Feedback feedback) {
         log.info("Updating feedback with ID: {}", feedback.getId());
         String sql = "UPDATE feedbacks SET title = ?, comment = ?, rating = ? WHERE id = ? RETURNING id, title, comment, rating, booking_id, user_id";
 

@@ -42,9 +42,9 @@ public class Router {
         // 3. Registrazione dei Controller nella lista
         List<Controller> controllers = List.of(
             new UserController(userService),
-            new ResidenceController(residenceService),
-            new BookingController(bookingService),
-            new FeedbackController(feedbackService),
+            new ResidenceController(residenceService,hostService),
+            new BookingController(bookingService,residenceService,userService),
+            new FeedbackController(feedbackService,bookingService,userService),
             new HostController(hostService)
         );
 

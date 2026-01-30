@@ -21,10 +21,10 @@ public class FeedbackService {
 
     // ==================== CREATE ====================
 
-    public Feedback createFeedback(Booking booking,User user, String title, int rating, String comment) {
-        log.info("Attempt to insert feedback - Booking : {}, Title: {}", booking, title);
-        Feedback feedback = new Feedback(booking,user, title, rating, comment);
-        return feedbackDAO.create(feedback);
+    public Feedback createFeedback(Feedback feedback) {
+        log.info("Attempt to insert feedback - Booking : {}, Title: {}", feedback.getBooking(), feedback.getTitle());
+        Feedback newFeedback = new Feedback(feedback.getBooking(),feedback.getUser(), feedback.getTitle(), feedback.getRating(), feedback.getComment());
+        return feedbackDAO.create(newFeedback);
     }
 
     // ==================== READ ====================
@@ -69,12 +69,11 @@ public class FeedbackService {
 
     // ==================== UPDATE ====================
 
-    public Feedback updateFeedbackComment(Feedback feedback, String newComment) {
+    public Feedback updateFeedback(Feedback feedback) {
         log.info("Updating feedback comment for ID: {}", feedback.getId());
-        feedback.setComment(newComment);
-        return feedbackDAO.updateComment(feedback)
+        return feedbackDAO.update(feedback)
                 .orElseThrow(() -> {
-                    log.warn("Failed to update comment for Feedback ID: {}", feedback.getId());
+                    log.warn("Failed to update Feedback with ID: {}", feedback.getId());
                     return new FeedbackNotFoundException(feedback.getId());
                 });
     }

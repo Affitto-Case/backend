@@ -22,25 +22,28 @@ public class ResidenceService {
 
     // ==================== CREATE ====================
 
-    public Residence createResidence(String name, String address, double pricePerNight,
-                                     int rooms, int guestCapacity, int floor,
-                                     LocalDate availabilityStart, LocalDate availabilityEnd,
-                                     Host host) {
+    public Residence createResidence(Residence residence) {
+    log.info("Attempting to insert residence - Name: {}, Address: {}, Floor: {}", 
+            residence.getName(), residence.getAddress(), residence.getFloor());
 
-        log.info("Attempting to insert residence - Name: {}, Address: {}, Floor: {}", name, address, floor);
-
-        Residence residence = new Residence(name, address, pricePerNight,
-                                            rooms, guestCapacity, floor,
-                                            availabilityStart, availabilityEnd, host);
-
-        if (residenceDAO.findByAddressAndFloor(address, floor).isPresent()) {
-            log.warn("Failed to insert residence - already exists at Address: {} Floor: {}", address, floor);
-            throw new DuplicateResidenceException("address and floor", address + ", " + floor);
-        }
-
-        return residenceDAO.create(residence);
+    if (residenceDAO.findByAddressAndFloor(residence.getAddress(), residence.getFloor()).isPresent()) {
+        log.warn("Failed to insert residence - already exists at Address: {} Floor: {}", 
+                residence.getAddress(), residence.getFloor());
+        throw new DuplicateResidenceException("address and floor", residence.getAddress() + ", " + residence.getFloor());
     }
 
+    if (residence.getAvailable_from().isAfter(residence.getAvailable_to())) {
+        throw new IllegalArgumentException("Start date cannot be after end date");
+    }
+
+    Residence newResidence = new Residence(
+            residence.getName(), residence.getAddress(), residence.getPrice_per_night(),
+            residence.getNumber_of_rooms(), residence.getGuest_capacity(), residence.getFloor(),
+            residence.getAvailable_from(), residence.getAvailable_to(), residence.getHost()
+    );
+
+    return residenceDAO.create(newResidence);
+}
     // ==================== READ ====================
 
     public List<Residence> getAllResidences() {

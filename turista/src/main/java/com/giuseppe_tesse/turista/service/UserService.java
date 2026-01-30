@@ -8,6 +8,8 @@ import com.giuseppe_tesse.turista.model.User;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.giuseppe_tesse.turista.util.PasswordHasher;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,32 +23,26 @@ public class UserService {
 
     // ==================== CREATE ====================
 
-    public User createUser(String firstName,
-                           String lastName,
-                           String email,
-                           String password,
-                           String address) {
+   public User createUser(User user) {
+    log.info("Attempt to create user - First name: {}, Last name: {}, Email: {}",
+            user.getFirstName(), user.getLastName(), user.getEmail());
 
-        log.info("Attempt to create user - First name: {}, Last name: {}, Email: {}",
-                firstName, lastName, email);
-
-        if (userDAO.findByEmail(email).isPresent()) {
-            log.warn("User creation failed - Email already exists: {}", email);
-            throw new DuplicateUserException("email", email);
-        }
-
-        User user = new User(
-                firstName,
-                lastName,
-                email,
-                password,
-                address,
-                LocalDate.now()
-        );
-
-        return userDAO.create(user);
+    if (userDAO.findByEmail(user.getEmail()).isPresent()) {
+        log.warn("User creation failed - Email already exists: {}", user.getEmail());
+        throw new DuplicateUserException("email", user.getEmail());
     }
+    
+    User newUser = new User(
+            user.getFirstName(),
+            user.getLastName(),
+            user.getEmail(),
+            hashPassword(user.getPassword()),
+            user.getAddress(),
+            LocalDate.now()
+    );
 
+    return userDAO.create(newUser);
+}
     // ==================== READ ====================
 
     public List<User> getAllUsers() {
@@ -82,6 +78,11 @@ public class UserService {
 
         return userDAO.update(user)
                 .orElseThrow(() -> new UserNotFoundException(user.getId()));
+    }
+
+    public String hashPassword(String password){
+        log.info("Updating password ");
+        return PasswordHasher.hash(password);
     }
 
     // ==================== DELETE ====================

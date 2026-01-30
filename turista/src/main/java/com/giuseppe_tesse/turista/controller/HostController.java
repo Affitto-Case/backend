@@ -1,11 +1,18 @@
 package com.giuseppe_tesse.turista.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.giuseppe_tesse.turista.dto.mapper.HostMapper;
+import com.giuseppe_tesse.turista.dto.response.HostResponseDTO;
+import com.giuseppe_tesse.turista.exception.DuplicateHostException;
+import com.giuseppe_tesse.turista.exception.HostNotFoundException;
+import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.service.HostService;
+
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
-import com.giuseppe_tesse.turista.exception.DuplicateHostException;
-import com.giuseppe_tesse.turista.exception.HostNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,7 +33,9 @@ public class HostController implements Controller {
     private void createHost(Context ctx) {
         Long userId = Long.valueOf(ctx.pathParam("userId"));
         try{
-            ctx.status(HttpStatus.CREATED).json(hostService.createHost(userId));
+            Host host = hostService.createHost(userId);
+            HostResponseDTO responseDTO = HostMapper.toResponseDTO(host);
+            ctx.status(HttpStatus.CREATED).json(responseDTO);
             log.info("Host successfully created");
         }catch(DuplicateHostException e){
             log.error("Failed to create host: {}", e.getMessage());
@@ -36,7 +45,12 @@ public class HostController implements Controller {
 
     private void getAllHosts(Context ctx) {
         try {
-            ctx.json(hostService.getAllHosts());
+            List<Host> hosts = hostService.getAllHosts();
+            List<HostResponseDTO> responseDTOs;
+            responseDTOs = hosts.stream()
+                    .map(HostMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+            ctx.status(HttpStatus.OK).json(responseDTOs);
         } catch (Exception e) {
             log.error("Error fetching host: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
@@ -44,9 +58,11 @@ public class HostController implements Controller {
     }
 
     private void getHostById(Context ctx) {
+        Long id = Long.valueOf(ctx.pathParam("id"));
         try{
-            Long id = Long.valueOf(ctx.pathParam("id"));
-            ctx.json(hostService.getHostById(id));
+            Host host = hostService.getHostById(id);
+            HostResponseDTO responseDTO = HostMapper.toResponseDTO(host);
+            ctx.status(HttpStatus.OK).json(responseDTO);
         }catch(HostNotFoundException e){
             log.error("Host not found: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage()); 
