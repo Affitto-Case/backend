@@ -94,66 +94,6 @@ public class BookingMapper {
         
         return dto;
     }
-
-    // ==================== UTILITY METHODS (opzionali) ====================
-    
-    /**
-     * Aggiorna un'entità Booking esistente con i dati del DTO
-     * Utile per le operazioni di UPDATE
-     * 
-     * @param existingBooking Booking entity esistente da aggiornare
-     * @param dto BookingRequestDTO con i nuovi dati
-     * @return Booking entity aggiornata
-     */
-    public static Booking updateEntity(Booking existingBooking, BookingRequestDTO dto) {
-        if (existingBooking == null || dto == null) {
-            return existingBooking;
-        }
-        
-        // Aggiorna solo i campi modificabili
-        if (dto.getStartDate() != null) {
-            existingBooking.setStartDate(dto.getStartDate());
-        }
-        
-        if (dto.getEndDate() != null) {
-            existingBooking.setEndDate(dto.getEndDate());
-        }
-        
-        
-        return existingBooking;
-    }
-    
-    /**
-     * Versione semplificata del DTO Response (per liste)
-     * Meno dettagli, più leggero
-     * 
-     * @param booking Booking entity
-     * @return BookingResponseDTO minimale
-     */
-    public static BookingResponseDTO toResponseDTOSimple(Booking booking) {
-        if (booking == null) {
-            return null;
-        }
-        
-        BookingResponseDTO dto = new BookingResponseDTO();
-        
-        dto.setId(booking.getId());
-        dto.setStartDate(booking.getStartDate());
-        dto.setEndDate(booking.getEndDate());
-        
-        if (booking.getResidence() != null) {
-            dto.setResidenceId(booking.getResidence().getId());
-            dto.setResidenceName(booking.getResidence().getName());
-        }
-        
-        if (booking.getUser() != null) {
-            dto.setUserId(booking.getUser().getId());
-            dto.setUserFirstName(booking.getUser().getFirstName());
-            dto.setUserLastName(booking.getUser().getLastName());
-        }
-        
-        return dto;
-    }
     
     /**
      * Previene istanziazione - classe con solo metodi static
