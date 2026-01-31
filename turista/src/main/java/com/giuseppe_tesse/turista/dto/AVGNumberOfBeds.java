@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AVGNumberOfBeds {
-    private Double AvgnumberOfBeds;
+    private Double avgnumberOfBeds;
     
 }

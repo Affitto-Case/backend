@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
+import com.giuseppe_tesse.turista.dto.AVGNumberOfBeds;
 import com.giuseppe_tesse.turista.model.Residence;
 
 public interface ResidenceDAO {
@@ -28,6 +29,8 @@ public interface ResidenceDAO {
     List<Residence> findByHostCode(String code);
 
     Optional<MostPopularResidenceDTO> getMostPopularResidenceLastMonth();
+
+    Optional<AVGNumberOfBeds> getAvgNumberOfBeds();
 
 // ==================== UPDATE ====================
 

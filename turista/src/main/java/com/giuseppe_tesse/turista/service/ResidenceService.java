@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
+import com.giuseppe_tesse.turista.dto.AVGNumberOfBeds;
 import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
 import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
@@ -98,6 +99,15 @@ public List<Residence> getResidenceByHostCode(String code) {
         log.info("Fetching the most popular home in the last month");
         return residenceDAO.getMostPopularResidenceLastMonth()
             .orElseThrow(() -> {
+                        log.warn("Residence not found");
+                        return new ResidenceNotFoundException("Residence not found");
+                    });
+    }
+
+    public AVGNumberOfBeds getAvgNumberOfBeds(){
+        log.info("Calculate average number of beds");
+        return residenceDAO.getAvgNumberOfBeds()
+                .orElseThrow(() -> {
                         log.warn("Residence not found");
                         return new ResidenceNotFoundException("Residence not found");
                     });

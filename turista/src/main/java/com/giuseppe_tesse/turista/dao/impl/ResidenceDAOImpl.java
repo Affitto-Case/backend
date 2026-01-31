@@ -230,28 +230,31 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     }
 }
 
-    // public AVGNumberOfBeds getAvgNumberOfBeds(){
-    //     log.info("Getting the average number of beds");
-    //     String sql="SELECT \r\n" + //
-    //                     "    ROUND(AVG(number_of_beds), 2) AS average_number_of_beds\r\n" + //
-    //                     "FROM residences;\r\n" + //
-    //                     "";
-    //     try (Connection conn = DatabaseConnection.getConnection();
-    //          PreparedStatement ps = conn.prepareStatement(sql)) {
-    //         try (ResultSet rs = ps.executeQuery()) {
-    //             if (rs.next()) {
-    //                 log.info("Successfully found residence at address: {}, floor: {}", address, floor);
-    //                 return Optional.of(residence);
-    //             }
-    //         }
-    //         log.warn("No residence found at address: {}, floor: {}", address, floor);
-    //         return Optional.empty();
+    @Override
+    public Optional<AVGNumberOfBeds> getAvgNumberOfBeds(){
+        log.info("Getting the average number of beds");
+        String sql="SELECT \r\n" + //
+                        "    ROUND(AVG(number_of_beds), 2) AS average_number_of_beds\r\n" + //
+                        "FROM residences;\r\n" + //
+                        "";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    AVGNumberOfBeds dto= new AVGNumberOfBeds();
+                    dto.setAvgnumberOfBeds(rs.getDouble("average_number_of_beds"));
+                    log.info("Successfully!! ");
+                    return Optional.of(dto);
+                }
+            }
+            log.warn("No residence found ");
+            return Optional.empty();
             
-    //     } catch (SQLException e) {
-    //         log.error("Error finding residence by address: {} and floor: {}", address, floor, e);
-    //         throw new RuntimeException("Error finding residence by address and floor", e);
-    //     }
-    // }
+        } catch (SQLException e) {
+            log.error("Error calculate number of beds : {}", e);
+            throw new RuntimeException("Error calculate number of beds ", e);
+        }
+    }
 
 
 // ==================== UPDATE ====================

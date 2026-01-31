@@ -4,9 +4,7 @@ import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.FeedbackDAO;
 import com.giuseppe_tesse.turista.model.Feedback;
-import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.exception.FeedbackNotFoundException;
-import com.giuseppe_tesse.turista.model.User;
 
 import lombok.extern.slf4j.Slf4j;
 

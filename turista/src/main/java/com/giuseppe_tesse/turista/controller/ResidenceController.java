@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.AVGNumberOfBeds;
 import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
 import com.giuseppe_tesse.turista.dto.mapper.ResidenceMapper;
 import com.giuseppe_tesse.turista.dto.request.ResidenceRequestDTO;
@@ -40,6 +41,7 @@ public class ResidenceController implements Controller {
         app.get("/api/v1/residences/owner/{ownerId}", this::getResidencesByOwner);
         app.get("/api/v1/residences/owner/host_code/{hostCode}", this::getResidencesByHostCode);
         app.get("/api/v1/residences/stats/mprlm", this::get_MPRLM);
+        app.get("/api/v1/residences/stats/avg", this::get_AvgNumberOfBeds);
         app.put("/api/v1/residences/{id}", this::updateResidence);
         app.delete("/api/v1/residences/{id}", this::deleteResidenceById);
         app.delete("/api/v1/residences/owner/{ownerId}", this::deleteResidencesByOwner);
@@ -151,7 +153,19 @@ public class ResidenceController implements Controller {
         try{
             MostPopularResidenceDTO dto = residenceService.get_MPRLM();
             ctx.status(200).json(dto);
-            log.info("Most popular residence retrieved");
+            log.info("Most popular residence retrieved ");
+        } catch (ResidenceNotFoundException e) {
+            log.error("Residences not found : {}", e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        }
+    }
+
+    private void get_AvgNumberOfBeds(Context ctx){
+        log.info("GET /api/v1/residences/stats/avg");
+        try {
+            AVGNumberOfBeds dto = residenceService.getAvgNumberOfBeds();
+            ctx.status(200).json(dto);
+            log.info("Average number of beds calculated ");
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found : {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
