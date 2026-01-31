@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.service;
 import com.giuseppe_tesse.turista.dao.BookingDAO;
 import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.UserDAO;
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.User;
 import com.giuseppe_tesse.turista.exception.DuplicateHostException;
@@ -73,10 +74,26 @@ public class HostService {
         return host;
     }
 
+    public List<Host> getAllSuperHosts() {
+        List<Host> hosts_tmp = hostDAO.getAllSuperHost();
+        List<Host> hosts = new ArrayList<>();
+        for (Host host : hosts_tmp) {
+            int total = bookingDAO.countTotalBookingsByHostCode(host.getHost_code());
+            host.setTotal_bookings(total); 
+            hosts.add(host);
+        }
+        return hosts;
+    }
+
+public List<TopHostDTO> getTopHostsLastMonth() {
+        List<TopHostDTO> hosts = hostDAO.getTopHostsLastMonth();
+
+        return hosts;
+    }
+
 public void updateHostStatus(Host host) {
     log.info("Updating status for Host Code: {}. New SuperHost status: {}", 
               host.getHost_code(), host.isSuperHost());
-    
     hostDAO.updateSuperHostStatus(host.getId(), host.isSuperHost());
 }
     

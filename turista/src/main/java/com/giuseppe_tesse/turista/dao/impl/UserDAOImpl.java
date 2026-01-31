@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.giuseppe_tesse.turista.dto.UserMostDayBooking;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -133,6 +135,37 @@ public class UserDAOImpl implements UserDAO {
             throw new RuntimeException("Error finding user by email: " + email, e);
         }
     }
+
+    public List<UserMostDayBooking> findUserMostDayBooking(){
+        log.info("Finding user with most day of booking: ");
+        String sql="SELECT \r\n" + //
+                        "    u.id AS user_id,\r\n" + //
+                        "    SUM(b.end_date::date - b.start_date::date) AS total_days\r\n" + //
+                        "FROM users u\r\n" + //
+                        "JOIN bookings b ON u.id = b.user_id\r\n" + //
+                        "WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')\r\n" + //
+                        "  AND b.start_date <  date_trunc('month', current_date)\r\n" + //
+                        "GROUP BY u.id\r\n" + //
+                        "ORDER BY total_days DESC\r\n" + //
+                        "LIMIT 5;\r\n" + //
+                        "";
+        List<UserMostDayBooking> users = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                UserMostDayBooking dto = new UserMostDayBooking();
+                dto.setUserId(rs.getLong("user_id"));
+                dto.setTotalDays(rs.getInt("total_days"));
+                users.add(dto);
+            }
+        } catch (SQLException e) {
+            log.error("Error retrieving all super hosts", e);
+            throw new RuntimeException("Error retrieving hosts", e);
+        }
+        return users;
+    } 
 
 // ==================== UPDATE ====================
 

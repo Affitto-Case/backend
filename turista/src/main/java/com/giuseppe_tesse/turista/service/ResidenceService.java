@@ -5,9 +5,12 @@ import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
+import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
+import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.exception.UserNotFoundException;
+import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 
@@ -90,6 +93,15 @@ public List<Residence> getResidenceByHostCode(String code) {
 
     return residenceDAO.findByHostId(host.getId());
 }
+
+    public MostPopularResidenceDTO get_MPRLM(){
+        log.info("Fetching the most popular home in the last month");
+        return residenceDAO.getMostPopularResidenceLastMonth()
+            .orElseThrow(() -> {
+                        log.warn("Residence not found");
+                        return new ResidenceNotFoundException("Residence not found");
+                    });
+    }
 
 
     // ==================== UPDATE ====================

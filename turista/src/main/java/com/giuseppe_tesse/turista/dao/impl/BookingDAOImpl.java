@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dao.BookingDAO;
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.exception.DuplicateBookingException;
 import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.model.Host;
@@ -208,6 +209,57 @@ private final String BOOKINGS_TOTAL_BY_HOST=
         }
     }
 
+    @Override
+    public List<TopHostDTO> getMostPopularHostsLastMonth() {
+    log.info("Fetching top 5 hosts by bookings last month");
+
+    String sql = """
+        SELECT 
+            h.user_id AS host_id,
+            h.host_code,
+            u.first_name,
+            u.last_name,
+            u.email,
+            COUNT(b.id) AS total_bookings
+        FROM hosts h
+        JOIN users u      ON h.user_id = u.id
+        JOIN residences r ON r.host_id = h.user_id
+        JOIN bookings b   ON r.id = b.residence_id
+        WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')
+          AND b.start_date <  date_trunc('month', current_date)
+        GROUP BY h.user_id, h.host_code, u.first_name, u.last_name, u.email
+        ORDER BY total_bookings DESC
+        LIMIT 5
+    """;
+
+    List<TopHostDTO> result = new ArrayList<>();
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            TopHostDTO dto = new TopHostDTO();
+            dto.setHostId(rs.getLong("host_id"));
+            dto.setHostCode(rs.getString("host_code"));
+            dto.setFirstName(rs.getString("first_name"));
+            dto.setLastName(rs.getString("last_name"));
+            dto.setEmail(rs.getString("email"));
+            dto.setTotalBookings(rs.getInt("total_bookings"));
+
+            result.add(dto);
+        }
+
+        return result;
+
+    } catch (SQLException e) {
+        log.error("Error fetching top hosts", e);
+        throw new RuntimeException("Error fetching top hosts", e);
+    }
+}
+
+
+    
 // ==================== UPDATE ====================
 
     @Override

@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.dao;
 import java.util.List;
 import java.util.Optional;
 
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.model.Booking;
 
 public interface BookingDAO {
@@ -21,6 +22,9 @@ public interface BookingDAO {
     List<Booking> findAll();
 
     Optional<Booking> findLastBookingByUserId(Long residenceId);
+
+
+    List<TopHostDTO> getMostPopularHostsLastMonth();
 
 // ==================== UPDATE ====================
 

@@ -8,6 +8,7 @@ import com.giuseppe_tesse.turista.model.User;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.giuseppe_tesse.turista.dto.UserMostDayBooking;
 import com.giuseppe_tesse.turista.util.PasswordHasher;
 
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,11 @@ public class UserService {
             log.warn("User not found with email: {}", email);
             return new UserNotFoundException(email);
         });
+    }
+
+    public List<UserMostDayBooking> getUserMostDayBooking(){
+        log.info("Searching 5 user with most day booking ");
+        return userDAO.findUserMostDayBooking();
     }
 
     // ==================== UPDATE ====================

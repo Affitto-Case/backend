@@ -1,6 +1,7 @@
 package com.giuseppe_tesse.turista.dao.impl;
 
 import com.giuseppe_tesse.turista.dao.HostDAO;
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
 import com.giuseppe_tesse.turista.util.DateConverter;
@@ -129,6 +130,66 @@ public class HostDAOImpl implements HostDAO {
             throw new RuntimeException("Error finding host by code", e);
         }
     }
+
+    @Override
+    public List<Host> getAllSuperHost(){
+        log.info("Retrieving all super  hosts");
+        String sql = "SELECT * \n" + //
+                        "FROM hosts\n" + //
+                        "WHERE is_super_host";
+        List<Host> hosts = new ArrayList<>();
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                hosts.add(mapResultSetToHost(rs));
+            }
+            log.info("Successfully retrieved {} suepr hosts", hosts.size());
+            return hosts;
+            
+        } catch (SQLException e) {
+            log.error("Error retrieving all super hosts", e);
+            throw new RuntimeException("Error retrieving hosts", e);
+        }
+    }
+
+    @Override
+    public List<TopHostDTO> getTopHostsLastMonth() {
+    String sql = """
+        SELECT 
+            h.user_id AS host_id,
+            COUNT(b.id) AS total_bookings
+        FROM hosts h
+        JOIN residences r ON r.host_id = h.user_id
+        JOIN bookings b ON r.id = b.residence_id
+        WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')
+          AND b.start_date <  date_trunc('month', current_date)
+        GROUP BY h.user_id
+        ORDER BY total_bookings DESC
+        LIMIT 5
+    """;
+
+    List<TopHostDTO> hosts = new ArrayList<>();
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            TopHostDTO dto = new TopHostDTO();
+            dto.setHostId(rs.getLong("host_id"));
+            dto.setTotalBookings(rs.getInt("total_bookings"));
+            hosts.add(dto);
+        }
+    }catch(SQLException e){
+        log.error("Error not found hosts : {}", e);
+        throw new RuntimeException("Error not found host", e);
+    }
+
+    return hosts;
+}
+
 
 // ==================== UPDATE ====================
 

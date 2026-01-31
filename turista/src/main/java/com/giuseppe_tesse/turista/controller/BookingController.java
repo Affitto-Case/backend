@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.dto.mapper.BookingMapper;
 import com.giuseppe_tesse.turista.dto.request.BookingRequestDTO;
 import com.giuseppe_tesse.turista.dto.response.BookingResponseDTO;
@@ -42,6 +43,7 @@ public class BookingController implements Controller {
         app.get("/api/v1/bookings/{id}", this::getBookingById);
         app.get("/api/v1/bookings/residence/{residenceId}", this::getBookingsByResidenceId);
         app.get("/api/v1/bookings/user/{userId}/last",this::getLastBookingByUserId);
+        app.get("/api/v1/stats/hosts",this::getMostPopularHosts);
         app.put("/api/v1/bookings/{id}", this::updateBooking);
         app.delete("/api/v1/bookings/{id}", this::deleteBookingById);
         app.delete("/api/v1/bookings", this::deleteAllBookings);
@@ -127,6 +129,13 @@ public class BookingController implements Controller {
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
+
+    private void getMostPopularHosts(Context ctx) {
+    log.info("GET /api/v1/stats/hosts");
+    List<TopHostDTO> result = bookingService.getMostPopularHostsLastMonth();
+    ctx.status(200).json(result);
+}
+
 
     // ==================== UPDATE ====================
     private void updateBooking(Context ctx) {

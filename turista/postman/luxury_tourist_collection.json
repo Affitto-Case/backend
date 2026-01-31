@@ -104,13 +104,38 @@
 					}
 				},
 				{
+					"name": "Get All Super Hosts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/super_hosts"
+					}
+				},
+				{
 					"name": "Get Host By ID",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": "http://localhost:8080/api/v1/hosts/1"
 					}
+				},
+				{
+					"name": "Get Top Hosts Last Month",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/hosts/mphlm"
+					}
+				},
+				{
+					"name": "Get Hosts Stats (Most Booked)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/stats/hosts"
+					}
 				}
+
 			]
 		},
 		{
@@ -169,6 +194,15 @@
 						"url": "http://localhost:8080/api/v1/residences/owner/host_code/HOST-f6e1e125"
 					}
 				},
+				{
+					"name": "Get Most Popular Residence Last Month",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/residences/stats/mprlm"
+					}
+				},
+
 				{
 					"name": "Update Residence",
 					"request": {

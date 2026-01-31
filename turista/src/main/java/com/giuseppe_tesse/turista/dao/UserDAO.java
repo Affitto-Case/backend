@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.dao;
 import java.util.List;
 import java.util.Optional; // Optional per i metodi di ricerca che potrebbero non trovare nulla
 
+import com.giuseppe_tesse.turista.dto.UserMostDayBooking;
 import com.giuseppe_tesse.turista.model.User;
 
 public interface UserDAO {
@@ -18,6 +19,8 @@ public interface UserDAO {
     Optional<User> findById(Long id);
 
     Optional<User> findByEmail(String email);
+
+    List<UserMostDayBooking> findUserMostDayBooking();
     
 // ==================== UPDATE ====================
 

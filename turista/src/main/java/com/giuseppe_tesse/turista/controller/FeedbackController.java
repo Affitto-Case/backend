@@ -41,7 +41,7 @@ public class FeedbackController implements Controller {
         app.get("/api/v1/feedbacks/user/{userId}", this::getFeedbacksByUser);
         app.get("/api/v1/feedbacks/booking/{bookingId}", this::getFeedbacksByBooking);
         app.get("/api/v1/feedbacks/user/{userId}/booking/{bookingId}", this::getFeedbackByUserAndBooking);
-        app.put("/api/v1/feedbacks/{id}", this::updateFeedback);  // ✅ Rinominato
+        app.put("/api/v1/feedbacks/{id}", this::updateFeedback); 
         app.delete("/api/v1/feedbacks", this::deleteAllFeedbacks);
         app.delete("/api/v1/feedbacks/{id}", this::deleteFeedbackById);
     }

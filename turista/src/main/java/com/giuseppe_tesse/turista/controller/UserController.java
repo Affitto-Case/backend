@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.UserMostDayBooking;
 import com.giuseppe_tesse.turista.dto.mapper.UserMapper;
 import com.giuseppe_tesse.turista.dto.request.UserRequestDTO;
 import com.giuseppe_tesse.turista.dto.response.UserResponseDTO;
@@ -32,6 +33,7 @@ public class UserController implements Controller {
         app.get("/api/v1/users/{id}", this::getUserById);
         app.get("/api/v1/users", this::getAllUsers);
         app.get("/api/v1/users/email/{email}", this::getUserByEmail);
+        app.get("/api/v1/users/stats/mdb",this::getUserMostDayBooking);
         app.put("/api/v1/users/{id}", this::updateUser);
         app.delete("/api/v1/users/{id}", this::deleteUserById);
         app.delete("/api/v1/users", this::deleteAllUsers);
@@ -92,6 +94,18 @@ public class UserController implements Controller {
             log.info("User retrieved successfully: {}", user.getId());
         } catch (UserNotFoundException e) {
             log.error("User not found with email {}: {}", email, e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        }
+    }
+
+    private void getUserMostDayBooking(Context ctx){
+        log.info("GET /api/v1/users/stats/mdb - Request to fetch user with most day booking");
+        try{
+            List<UserMostDayBooking> users = userService.getUserMostDayBooking();
+            ctx.status(HttpStatus.OK).json(users);
+            log.info("User retrieved successfully: {}", users.size());
+        }catch (UserNotFoundException e) {
+            log.error("User not found {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }

@@ -3,6 +3,7 @@ package com.giuseppe_tesse.turista.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
 import com.giuseppe_tesse.turista.dto.mapper.ResidenceMapper;
 import com.giuseppe_tesse.turista.dto.request.ResidenceRequestDTO;
 import com.giuseppe_tesse.turista.dto.response.ResidenceResponseDTO;
@@ -38,6 +39,7 @@ public class ResidenceController implements Controller {
         app.get("/api/v1/residences/address/{address}/floor/{floor}", this::getResidenceByAddressAndFloor);
         app.get("/api/v1/residences/owner/{ownerId}", this::getResidencesByOwner);
         app.get("/api/v1/residences/owner/host_code/{hostCode}", this::getResidencesByHostCode);
+        app.get("/api/v1/residences/stats/mprlm", this::get_MPRLM);
         app.put("/api/v1/residences/{id}", this::updateResidence);
         app.delete("/api/v1/residences/{id}", this::deleteResidenceById);
         app.delete("/api/v1/residences/owner/{ownerId}", this::deleteResidencesByOwner);
@@ -144,6 +146,18 @@ public class ResidenceController implements Controller {
         }
     }
 
+    private void get_MPRLM(Context ctx) {
+        log.info("GET /api/v1/residences/stats/mprlm");
+        try{
+            MostPopularResidenceDTO dto = residenceService.get_MPRLM();
+            ctx.status(200).json(dto);
+            log.info("Most popular residence retrieved");
+        } catch (ResidenceNotFoundException e) {
+            log.error("Residences not found : {}", e.getMessage());
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        }
+    }
+
     // ==================== UPDATE ====================
     private void updateResidence(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
@@ -159,6 +173,8 @@ public class ResidenceController implements Controller {
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
+
+
 
     // ==================== DELETE ====================
     private void deleteResidenceById(Context ctx) {

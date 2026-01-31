@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.BookingDAO;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
+import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.exception.DuplicateBookingException;
 import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
@@ -82,6 +83,13 @@ public class BookingService {
         return bookingDAO.findLastBookingByUserId(userId)
                 .orElseThrow(() -> new BookingNotFoundException(userId));
     }
+
+    public List<TopHostDTO> getMostPopularHostsLastMonth() {
+        List<TopHostDTO> hosts = bookingDAO.getMostPopularHostsLastMonth();
+
+        return hosts;
+    }
+
 
     // ==================== UPDATE ====================
 

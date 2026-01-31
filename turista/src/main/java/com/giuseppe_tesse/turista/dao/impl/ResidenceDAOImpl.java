@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
+import com.giuseppe_tesse.turista.dto.AVGNumberOfBeds;
+import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 import com.giuseppe_tesse.turista.util.DatabaseConnection;
@@ -193,6 +195,64 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             throw new RuntimeException("Error finding residences by host code", e);
         }
     }
+
+    public Optional<MostPopularResidenceDTO> getMostPopularResidenceLastMonth() {
+    String sql = """
+        SELECT 
+            r.id AS residence_id,
+            r.name,
+            COUNT(b.id) AS total_bookings
+        FROM residences r
+        JOIN bookings b ON r.id = b.residence_id
+        WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')
+          AND b.start_date <  date_trunc('month', current_date)
+        GROUP BY r.id, r.name
+        ORDER BY total_bookings DESC
+        LIMIT 1
+    """;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        if (rs.next()) {
+            MostPopularResidenceDTO dto = new MostPopularResidenceDTO();
+            dto.setResidenceId(rs.getLong("residence_id"));
+            dto.setName(rs.getString("name"));
+            dto.setTotalBookings(rs.getInt("total_bookings"));
+            return Optional.of(dto);
+        }
+
+        return Optional.empty();
+    }
+    catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+}
+
+    // public AVGNumberOfBeds getAvgNumberOfBeds(){
+    //     log.info("Getting the average number of beds");
+    //     String sql="SELECT \r\n" + //
+    //                     "    ROUND(AVG(number_of_beds), 2) AS average_number_of_beds\r\n" + //
+    //                     "FROM residences;\r\n" + //
+    //                     "";
+    //     try (Connection conn = DatabaseConnection.getConnection();
+    //          PreparedStatement ps = conn.prepareStatement(sql)) {
+    //         try (ResultSet rs = ps.executeQuery()) {
+    //             if (rs.next()) {
+    //                 log.info("Successfully found residence at address: {}, floor: {}", address, floor);
+    //                 return Optional.of(residence);
+    //             }
+    //         }
+    //         log.warn("No residence found at address: {}, floor: {}", address, floor);
+    //         return Optional.empty();
+            
+    //     } catch (SQLException e) {
+    //         log.error("Error finding residence by address: {} and floor: {}", address, floor, e);
+    //         throw new RuntimeException("Error finding residence by address and floor", e);
+    //     }
+    // }
+
 
 // ==================== UPDATE ====================
 
