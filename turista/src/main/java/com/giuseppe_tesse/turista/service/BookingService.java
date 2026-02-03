@@ -71,6 +71,11 @@ public class BookingService {
         return bookingDAO.findByResidenceId(residenceId)
                 .orElseThrow(() -> new BookingNotFoundException(residenceId));
     }
+    public List<Booking> getBookingsByUserId(Long userId) {
+        log.info("Fetching bookings for residence ID: {}", userId);
+        return bookingDAO.findBookingsByUserId(userId)
+                .orElseThrow(() -> new BookingNotFoundException(userId));
+    }
 
     public Booking getLastBookingByUserId(Long userId){
         log.info("Fetching last booking for user ID: {}", userId);
@@ -154,6 +159,11 @@ public class BookingService {
     if (booking.getResidence().getHost().getId().equals(booking.getUser().getId())) {
         throw new BadRequestException("Non puoi prenotare una tua abitazione");
     }
+
+    if(booking.getStartDate().isBefore(LocalDateTime.now())){
+        throw new BadRequestException("Non puoi prenotare in giorni antecedenti a oggi");
+    }    
+
     List<Booking> existingBookings = bookingDAO.findByResidenceId(booking.getResidence().getId()).orElse(new ArrayList<>());
 
         for (Booking existing : existingBookings) {

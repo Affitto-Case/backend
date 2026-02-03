@@ -142,17 +142,26 @@
 			"name": "Residences",
 			"item": [
 				{
-					"name": "Create Residence",
-					"request": {
-						"method": "POST",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Villa Smeralda\",\n    \"address\": \"Costa Smeralda 5\",\n    \"numberOfRooms\": 5,\n    \"numberOfBeds\": 10,\n    \"floor\": 0,\n    \"price\": 500.00,\n    \"availabilityStart\": \"2025-06-01\",\n    \"availabilityEnd\": \"2025-09-01\"\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": "http://localhost:8080/api/v1/residences/1"
+				"name": "Create Residence",
+				"request": {
+					"method": "POST",
+					"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
 					}
+					],
+					"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Villa Diamante\",\n    \"address\": \"Costa Diamante 7\",\n    \"numberOfRooms\": 7,\n    \"guestCapacity\": 5,\n    \"floor\": 0,\n    \"price\": 500.00,\n    \"availableFrom\": \"2025-06-01\",\n    \"availableTo\": \"2025-09-01\",\n    \"hostId\": 1\n}",
+					"options": {
+						"raw": {
+						"language": "json"
+						}
+					}
+					},
+					"url": "http://localhost:8080/api/v1/residence"
+				}
 				},
 				{
 					"name": "Get All Residences",
@@ -298,6 +307,14 @@
 						"method": "GET",
 						"header": [],
 						"url": "http://localhost:8080/api/v1/bookings/residence/1"
+					}
+				},
+				{
+					"name": "Get Bookings By User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/v1/bookings/user/1"
 					}
 				},
 								{

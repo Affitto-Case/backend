@@ -23,6 +23,7 @@ public interface BookingDAO {
 
     Optional<Booking> findLastBookingByUserId(Long residenceId);
 
+    Optional<List<Booking>> findBookingsByUserId(Long user_id);
 
     List<TopHostDTO> getMostPopularHostsLastMonth();
 

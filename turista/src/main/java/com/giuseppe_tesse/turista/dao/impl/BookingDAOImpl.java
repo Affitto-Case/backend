@@ -210,6 +210,34 @@ private final String BOOKINGS_TOTAL_BY_HOST=
     }
 
     @Override
+    public Optional<List<Booking>> findBookingsByUserId(Long user_id){
+        log.info("Finding last booking for user ID: {}", user_id);
+        String sql = SELECT_ALL_JOIN + " WHERE guest.id = ? ORDER BY b.start_date DESC" ;
+        List<Booking> bookings = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, user_id);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    bookings.add(mapResultSetToBooking(rs));
+                }
+            }
+            if (bookings.isEmpty()) {
+                log.info("No bookings found for user ID: {}", user_id);
+                return Optional.empty();
+            }
+            
+            log.info("Successfully retrieved {} bookings for user ID: {}", bookings.size(), user_id);
+            return Optional.of(bookings);
+
+        } catch (SQLException e) {
+            log.error("Error finding booking by user ID: {}", user_id, e);
+            throw new RuntimeException("Error finding booking by ID", e);
+        }
+    }
+
+    @Override
     public List<TopHostDTO> getMostPopularHostsLastMonth() {
     log.info("Fetching top 5 hosts by bookings last month");
 

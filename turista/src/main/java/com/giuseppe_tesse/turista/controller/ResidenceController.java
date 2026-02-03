@@ -34,7 +34,7 @@ public class ResidenceController implements Controller {
 
     @Override
     public void registerRoutes(Javalin app) {
-        app.post("/api/v1/residences/{hostId}", this::createResidence);
+        app.post("/api/v1/residence", this::createResidence);
         app.get("/api/v1/residences/{id}", this::getResidenceById);
         app.get("/api/v1/residences", this::getAllResidences);
         app.get("/api/v1/residences/address/{address}/floor/{floor}", this::getResidenceByAddressAndFloor);
