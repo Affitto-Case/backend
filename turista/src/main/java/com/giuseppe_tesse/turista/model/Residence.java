@@ -23,14 +23,14 @@ public class Residence {
 
     @JsonProperty("numberOfRooms")
     private int number_of_rooms;
-    @JsonProperty("numberOfBeds")
+    @JsonProperty("guestCapacity")
     private int guest_capacity;
     private int floor;
     
-    @JsonProperty("availabilityStart")
+    @JsonProperty("availableFrom")
     private LocalDate available_from;
 
-    @JsonProperty("availabilityEnd")
+    @JsonProperty("availableTo")
     private LocalDate available_to;
     private Host host;
 

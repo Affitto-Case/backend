@@ -176,15 +176,27 @@ public class ResidenceController implements Controller {
     private void updateResidence(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("PUT /api/v1/residences/{} - Request to update residence", id);
-        Residence residenceUpdates = ctx.bodyAsClass(Residence.class);
-        residenceUpdates.setId(id);
         try {
+            ResidenceRequestDTO requestDTO = ctx.bodyAsClass(ResidenceRequestDTO.class);
+
+            Host host = hostService.getHostById(requestDTO.getHostId());
+
+            Residence residenceUpdates = ResidenceMapper.toEntity(requestDTO, host);
+            residenceUpdates.setId(id);
+
             Residence updatedResidence = residenceService.updateResidence(residenceUpdates);
-            ctx.status(HttpStatus.OK).json(updatedResidence);
-            log.info("Residence updated successfully: {}", updatedResidence);
+            
+            ResidenceResponseDTO responseDTO = ResidenceMapper.toResponseDTO(updatedResidence);
+            
+            ctx.status(HttpStatus.OK).json(responseDTO);
+            log.info("Residence updated successfully: {}", id);
+            
         } catch (ResidenceNotFoundException e) {
             log.warn("Residence not found with ID {}: {}", id, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
+        } catch (Exception e) {
+            log.error("General error during update: {}", e.getMessage());
+            ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request body");
         }
     }
 

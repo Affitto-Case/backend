@@ -216,11 +216,20 @@
 					"name": "Update Residence",
 					"request": {
 						"method": "PUT",
-						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Villa Smeralda Deluxe\",\n    \"address\": \"Costa Smeralda 5\",\n    \"numberOfRooms\": 6,\n    \"numberOfBeds\": 12,\n    \"floor\": 0,\n    \"price\": 600.00,\n    \"availabilityStart\": \"2025-06-01\",\n    \"availabilityEnd\": \"2025-10-01\"\n}",
-							"options": { "raw": { "language": "json" } }
+							"raw": "{\n    \"name\": \"Villa Smeralda Deluxe\",\n    \"address\": \"Costa Smeralda 5\",\n    \"numberOfRooms\": 6,\n    \"guestCapacity\": 12,\n    \"floor\": 0,\n    \"price\": 600.00,\n    \"availableFrom\": \"2025-06-01\",\n    \"availableTo\": \"2025-10-01\",\n    \"hostId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": "http://localhost:8080/api/v1/residences/1"
 					}

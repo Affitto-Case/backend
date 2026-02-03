@@ -30,6 +30,17 @@ public class LuxuryTouristApplication {
 
         // 4. Registrazione di tutte le rotte tramite il Router
         Router.registerAll(app);
+        
+        app.options("/*", ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+            ctx.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+            ctx.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+            ctx.status(200); // importantissimo!
+        });
+
+        app.before(ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+        });
 
         // 5. Avvio dell'applicazione sulla porta 8080
         app.start(8080);

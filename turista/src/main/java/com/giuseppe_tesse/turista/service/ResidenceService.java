@@ -1,17 +1,14 @@
 package com.giuseppe_tesse.turista.service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import com.giuseppe_tesse.turista.dao.HostDAO;
 import com.giuseppe_tesse.turista.dao.ResidenceDAO;
 import com.giuseppe_tesse.turista.dto.AVGNumberOfBeds;
 import com.giuseppe_tesse.turista.dto.MostPopularResidenceDTO;
-import com.giuseppe_tesse.turista.exception.BookingNotFoundException;
 import com.giuseppe_tesse.turista.exception.DuplicateResidenceException;
 import com.giuseppe_tesse.turista.exception.ResidenceNotFoundException;
 import com.giuseppe_tesse.turista.exception.UserNotFoundException;
-import com.giuseppe_tesse.turista.model.Booking;
 import com.giuseppe_tesse.turista.model.Host;
 import com.giuseppe_tesse.turista.model.Residence;
 

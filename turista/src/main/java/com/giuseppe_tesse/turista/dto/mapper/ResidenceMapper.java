@@ -24,7 +24,7 @@ public class ResidenceMapper {
         Residence residence = new Residence();
         residence.setName(dto.getName());
         residence.setAddress(dto.getAddress());
-        residence.setPrice_per_night(dto.getPricePerNight());
+        residence.setPrice_per_night(dto.getPrice());
         residence.setNumber_of_rooms(dto.getNumberOfRooms());
         residence.setGuest_capacity(dto.getGuestCapacity());
         residence.setFloor(dto.getFloor());
@@ -54,7 +54,7 @@ public class ResidenceMapper {
         dto.setId(residence.getId());
         dto.setName(residence.getName());
         dto.setAddress(residence.getAddress());
-        dto.setPricePerNight(residence.getPrice_per_night());
+        dto.setPrice(residence.getPrice_per_night());
         dto.setNumberOfRooms(residence.getNumber_of_rooms());
         dto.setGuestCapacity(residence.getGuest_capacity());
         dto.setFloor(residence.getFloor());

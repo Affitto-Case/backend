@@ -16,7 +16,7 @@ public class ResidenceResponseDTO {
     private Long id;
     private String name;
     private String address;
-    private Double pricePerNight;
+    private Double price;
     private Integer numberOfRooms;
     private Integer guestCapacity;
     private Integer floor;

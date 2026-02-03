@@ -23,7 +23,7 @@ public class ResidenceRequestDTO {
     @NotNull(message = "Price per night is required")
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     @DecimalMax(value = "100000.00", message = "Price must be realistic")
-    private Double pricePerNight;  // Double invece di double per @NotNull
+    private Double price;  // Double invece di double per @NotNull
 
     @NotNull(message = "Number of rooms is required")
     @Min(value = 1, message = "At least 1 room is required")
