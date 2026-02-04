@@ -8,5 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserMostDayBooking{
     private Long userId;
+    private String firstName;
+    private String lastName;
+    private String email;
     private Integer totalDays;
 }

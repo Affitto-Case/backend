@@ -23,6 +23,6 @@ public class HostResponseDTO {
     // HOST attributes
     private String hostCode;
     private Integer totalBookings;
-    private Boolean isSuperHost;  // Calcolato: totalBookings >= 100
+    private Boolean isSuperHost; 
 
 }

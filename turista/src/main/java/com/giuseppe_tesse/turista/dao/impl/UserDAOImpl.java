@@ -140,6 +140,7 @@ public class UserDAOImpl implements UserDAO {
         log.info("Finding user with most day of booking: ");
         String sql="SELECT \r\n" + //
                         "    u.id AS user_id,\r\n" + //
+                        "    first_name, last_name, email,\r\n" + //
                         "    SUM(b.end_date::date - b.start_date::date) AS total_days\r\n" + //
                         "FROM users u\r\n" + //
                         "JOIN bookings b ON u.id = b.user_id\r\n" + //
@@ -157,6 +158,9 @@ public class UserDAOImpl implements UserDAO {
             while (rs.next()) {
                 UserMostDayBooking dto = new UserMostDayBooking();
                 dto.setUserId(rs.getLong("user_id"));
+                dto.setFirstName(rs.getString("first_name"));
+                dto.setLastName(rs.getString("last_name"));
+                dto.setEmail(rs.getString("email"));
                 dto.setTotalDays(rs.getInt("total_days"));
                 users.add(dto);
             }
