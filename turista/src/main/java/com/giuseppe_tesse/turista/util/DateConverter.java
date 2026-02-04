@@ -4,7 +4,6 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
  * Metodi di utility per la conversione tra date. LocalDate --> java.sql.Date
@@ -13,7 +12,6 @@ import java.time.ZoneId;
 public class DateConverter {
 
     public static LocalDate date2LocalDate(Date date2convert) {
-        // Usa toLocalDate() direttamente invece di toInstant()
         return date2convert.toLocalDate();
     }
 
