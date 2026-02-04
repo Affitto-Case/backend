@@ -124,7 +124,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://localhost:8080/api/v1/hosts/mphlm"
+						"url": "http://localhost:8080/api/v1/stats/hosts"
 					}
 				},
 				{
