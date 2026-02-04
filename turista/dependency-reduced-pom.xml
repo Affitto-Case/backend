@@ -77,7 +77,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.giuseppe_tesse.turista.App</mainClass>
+                  <mainClass>com.giuseppe_tesse.turista.LuxuryTouristApplication</mainClass>
                 </transformer>
               </transformers>
               <filters>
