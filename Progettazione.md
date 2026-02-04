@@ -1669,3 +1669,7 @@ WHERE b.user_id = ?
   - Validazioni e sicurezza
 
 ---
+
+**Documento versione**: 1.0  
+**Ultimo aggiornamento**: Febbraio 2026  
+**Autore**: Giuseppe Tesse
