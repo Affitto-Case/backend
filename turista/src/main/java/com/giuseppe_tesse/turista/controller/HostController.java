@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.giuseppe_tesse.turista.dto.TopHostDTO;
 import com.giuseppe_tesse.turista.dto.mapper.HostMapper;
+import com.giuseppe_tesse.turista.dto.request.CreateHostDTO;
 import com.giuseppe_tesse.turista.dto.response.HostResponseDTO;
 import com.giuseppe_tesse.turista.exception.DuplicateHostException;
 import com.giuseppe_tesse.turista.exception.HostNotFoundException;
@@ -26,7 +27,7 @@ public class HostController implements Controller {
 
     @Override
     public void registerRoutes(Javalin app) {
-        app.post("/api/v1/hosts/{userId}", this::createHost);
+        app.post("/api/v1/hosts", this::createHost);
         app.get("/api/v1/hosts", this::getAllHosts);
         app.get("/api/v1/hosts/{id}", this::getHostById);
         app.get("/api/v1/super_hosts",this::getAllSuperHosts);
@@ -34,7 +35,8 @@ public class HostController implements Controller {
     }
 
     private void createHost(Context ctx) {
-        Long userId = Long.valueOf(ctx.pathParam("userId"));
+        CreateHostDTO resp = ctx.bodyAsClass(CreateHostDTO.class);
+        Long userId = resp.getUserId();
         try{
             Host host = hostService.createHost(userId);
             HostResponseDTO responseDTO = HostMapper.toResponseDTO(host);
