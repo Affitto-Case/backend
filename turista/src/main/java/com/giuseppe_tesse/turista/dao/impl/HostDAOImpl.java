@@ -138,6 +138,8 @@ public class HostDAOImpl implements HostDAO {
         log.info("Retrieving all super  hosts");
         String sql = "SELECT * \n" + //
                 "FROM hosts\n" + //
+                "JOIN users u\n" + //
+                "WHERE hosts.user_id = u.id\n"+ //
                 "WHERE is_super_host";
         List<Host> hosts = new ArrayList<>();
 
