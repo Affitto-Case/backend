@@ -136,11 +136,7 @@ public class HostDAOImpl implements HostDAO {
     @Override
     public List<Host> getAllSuperHost() {
         log.info("Retrieving all super  hosts");
-        String sql = "SELECT * \n" + //
-                "FROM hosts\n" + //
-                "JOIN users u\n" + //
-                "WHERE hosts.user_id = u.id\n"+ //
-                "WHERE is_super_host";
+        String sql = "SELECT * FROM hosts JOIN users u ON hosts.user_id = u.id WHERE is_super_host;";
         List<Host> hosts = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
