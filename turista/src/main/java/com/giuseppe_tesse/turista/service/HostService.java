@@ -91,10 +91,10 @@ public List<TopHostDTO> getTopHostsLastMonth() {
         return hosts;
     }
 
-public void updateHostStatus(Host host) {
-    log.info("Updating status for Host Code: {}. New SuperHost status: {}", 
-              host.getHost_code(), host.isSuperHost());
-    hostDAO.updateSuperHostStatus(host.getId(), host.isSuperHost());
+public void updateHostStats(Host host) {
+    log.info("Updating stats for Host Code: {}. Bookings: {}, SuperHost: {}", 
+              host.getHost_code(), host.getTotal_bookings(), host.isSuperHost());
+    hostDAO.updateHostStats(host.getId(), host.getTotal_bookings(), host.isSuperHost());
 }
     
 }

@@ -34,24 +34,24 @@ public class BookingService {
 
     public Booking createBooking(Booking booking) {
         log.info("Attempt to create booking - Residence: {}, User: {}, Start: {}, End: {}",
-        booking.getResidence().getId(), booking.getUser().getId(), booking.getStartDate(), booking.getEndDate());
+                booking.getResidence().getId(), booking.getUser().getId(), booking.getStartDate(),
+                booking.getEndDate());
         validateBooking(booking);
         Booking savedBooking = bookingDAO.create(booking);
         try {
             Residence residence = residenceDAO.findById(savedBooking.getResidence().getId())
                     .orElseThrow(() -> new ResidenceNotFoundException(savedBooking.getResidence().getId()));
-            
+
             String hostCode = residence.getHost().getHost_code();
-            
+
             refreshSuperHostStatus(hostCode, hostService);
-            
+
         } catch (Exception e) {
             log.error("Error refreshing SuperHost status, but booking was created: ", e);
         }
 
         return savedBooking;
     }
-        
 
     // ==================== READ ====================
 
@@ -71,13 +71,14 @@ public class BookingService {
         return bookingDAO.findByResidenceId(residenceId)
                 .orElseThrow(() -> new BookingNotFoundException(residenceId));
     }
+
     public List<Booking> getBookingsByUserId(Long userId) {
         log.info("Fetching bookings for residence ID: {}", userId);
         return bookingDAO.findBookingsByUserId(userId)
                 .orElseThrow(() -> new BookingNotFoundException(userId));
     }
 
-    public Booking getLastBookingByUserId(Long userId){
+    public Booking getLastBookingByUserId(Long userId) {
         log.info("Fetching last booking for user ID: {}", userId);
         return bookingDAO.findLastBookingByUserId(userId)
                 .orElseThrow(() -> new BookingNotFoundException(userId));
@@ -88,7 +89,6 @@ public class BookingService {
 
         return hosts;
     }
-
 
     // ==================== UPDATE ====================
 
@@ -116,63 +116,54 @@ public class BookingService {
         return bookingDAO.deleteAll();
     }
 
-
     // ==================== UTILITY ====================
-    private void refreshSuperHostStatus(String hostCode,HostService hostService) {
-    // 1. Conta le prenotazioni totali
-    int totalBookings = bookingDAO.countTotalBookingsByHostCode(hostCode);
-    
-    // 2. Recupera l'Host
-    Host host = hostService.getByHostCode(hostCode);
-    
-    // 3. Logica della soglia
-    boolean shouldBeSuper = totalBookings >= 100;
-    
-    // 4. Aggiorna solo se lo stato è cambiato (per ottimizzare il DB)
-    if (host.isSuperHost() != shouldBeSuper) {
-        host.setSuperHost(shouldBeSuper);
-        hostService.updateHostStatus(host);
+    private void refreshSuperHostStatus(String hostCode, HostService hostService) {
         
-        log.info("Host {} status changed. SuperHost: {}", hostCode, shouldBeSuper);
-        }
-}
+        int totalBookings = bookingDAO.countTotalBookingsByHostCode(hostCode);
+        Host host = hostService.getByHostCode(hostCode);
+        boolean shouldBeSuper = totalBookings >= 100;
+        host.setTotal_bookings(totalBookings);
+        host.setSuperHost(shouldBeSuper);
+        hostService.updateHostStats(host);
+        log.info("Host {} stats updated. Total bookings: {}, SuperHost: {}", hostCode, totalBookings, shouldBeSuper);
+    }
 
     private void validateBooking(Booking booking) {
-    if (!booking.getEndDate().isAfter(booking.getStartDate())) {
-        throw new BadRequestException("La data di fine deve essere successiva a quella di inizio");
-    }
-    LocalDateTime availableFrom = booking.getResidence()
-        .getAvailable_from()
-        .atStartOfDay();
+        if (!booking.getEndDate().isAfter(booking.getStartDate())) {
+            throw new BadRequestException("La data di fine deve essere successiva a quella di inizio");
+        }
+        LocalDateTime availableFrom = booking.getResidence()
+                .getAvailable_from()
+                .atStartOfDay();
 
-    LocalDateTime availableTo = booking.getResidence()
-            .getAvailable_to()
-            .atTime(23, 59, 59);
+        LocalDateTime availableTo = booking.getResidence()
+                .getAvailable_to()
+                .atTime(23, 59, 59);
 
-    if (booking.getStartDate().isBefore(availableFrom) ||
-        booking.getEndDate().isAfter(availableTo)) {
-        throw new BadRequestException(
-            "Le date non rientrano nel periodo di disponibilità dell'abitazione"
-        );
-    }
+        if (booking.getStartDate().isBefore(availableFrom) ||
+                booking.getEndDate().isAfter(availableTo)) {
+            throw new BadRequestException(
+                    "Le date non rientrano nel periodo di disponibilità dell'abitazione");
+        }
 
-    if (booking.getResidence().getHost().getId().equals(booking.getUser().getId())) {
-        throw new BadRequestException("Non puoi prenotare una tua abitazione");
-    }
+        if (booking.getResidence().getHost().getId().equals(booking.getUser().getId())) {
+            throw new BadRequestException("Non puoi prenotare una tua abitazione");
+        }
 
-    if(booking.getStartDate().isBefore(LocalDateTime.now())){
-        throw new BadRequestException("Non puoi prenotare in giorni antecedenti a oggi");
-    }    
+        if (booking.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Non puoi prenotare in giorni antecedenti a oggi");
+        }
 
-    List<Booking> existingBookings = bookingDAO.findByResidenceId(booking.getResidence().getId()).orElse(new ArrayList<>());
+        List<Booking> existingBookings = bookingDAO.findByResidenceId(booking.getResidence().getId())
+                .orElse(new ArrayList<>());
 
         for (Booking existing : existingBookings) {
-            if (booking.getStartDate().isBefore(existing.getEndDate()) 
-                && booking.getEndDate().isAfter(existing.getStartDate())) {
+            if (booking.getStartDate().isBefore(existing.getEndDate())
+                    && booking.getEndDate().isAfter(existing.getStartDate())) {
                 log.warn("Booking conflict detected for residence ID: {}", booking.getResidence().getId());
                 throw new DuplicateBookingException("A booking already exists for the selected period");
             }
         }
-}
+    }
 
 }

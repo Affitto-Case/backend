@@ -23,6 +23,7 @@ CREATE TABLE hosts (
     user_id INT PRIMARY KEY,
     host_code VARCHAR(50) UNIQUE NOT NULL,
     total_bookings INT DEFAULT 0,
+    is_super_host BOOLEAN DEFAULT FALSE,
     registration_date DATE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
