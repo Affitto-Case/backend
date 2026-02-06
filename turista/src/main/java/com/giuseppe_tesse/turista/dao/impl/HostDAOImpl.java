@@ -254,7 +254,7 @@ public class HostDAOImpl implements HostDAO {
 
     private Host mapResultSetToHost(ResultSet rs) throws SQLException {
         Host host = new Host();
-        host.setId(rs.getLong("u_id"));
+        host.setId(rs.getLong("user_id"));
         host.setFirstName(rs.getString("first_name"));
         host.setLastName(rs.getString("last_name"));
         host.setEmail(rs.getString("email"));
