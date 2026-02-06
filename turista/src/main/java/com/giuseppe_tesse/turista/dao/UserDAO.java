@@ -8,30 +8,32 @@ import com.giuseppe_tesse.turista.model.User;
 
 public interface UserDAO {
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
     User create(User user);
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     List<User> findAll();
 
     Optional<User> findById(Long id);
 
+    Integer getUserCount();
+
     Optional<User> findByEmail(String email);
 
     List<UserMostDayBooking> findUserMostDayBooking();
-    
-// ==================== UPDATE ====================
+
+    // ==================== UPDATE ====================
 
     Optional<User> update(User user);
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     int deleteAll();
 
     boolean deleteById(Long id);
 
     boolean deleteByEmail(String email);
-    
+
 }

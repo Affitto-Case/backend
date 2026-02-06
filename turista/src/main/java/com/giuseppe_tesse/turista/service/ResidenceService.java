@@ -20,7 +20,7 @@ public class ResidenceService {
     private final ResidenceDAO residenceDAO;
     private final HostDAO hostDAO;
 
-    public ResidenceService(ResidenceDAO residenceDAO,HostDAO hostDAO) {
+    public ResidenceService(ResidenceDAO residenceDAO, HostDAO hostDAO) {
         this.residenceDAO = residenceDAO;
         this.hostDAO = hostDAO;
     }
@@ -28,36 +28,40 @@ public class ResidenceService {
     // ==================== CREATE ====================
 
     public Residence createResidence(Residence residence) {
-    log.info("Attempting to insert residence - Name: {}, Address: {}, Floor: {}", 
-            residence.getName(), residence.getAddress(), residence.getFloor());
+        log.info("Attempting to insert residence - Name: {}, Address: {}, Floor: {}",
+                residence.getName(), residence.getAddress(), residence.getFloor());
 
-    if (residenceDAO.findByAddressAndFloor(residence.getAddress(), residence.getFloor()).isPresent()) {
-        log.warn("Failed to insert residence - already exists at Address: {} Floor: {}", 
-                residence.getAddress(), residence.getFloor());
-        throw new DuplicateResidenceException("address and floor", residence.getAddress() + ", " + residence.getFloor());
+        if (residenceDAO.findByAddressAndFloor(residence.getAddress(), residence.getFloor()).isPresent()) {
+            log.warn("Failed to insert residence - already exists at Address: {} Floor: {}",
+                    residence.getAddress(), residence.getFloor());
+            throw new DuplicateResidenceException("address and floor",
+                    residence.getAddress() + ", " + residence.getFloor());
+        }
+
+        if (residence.getAvailable_from().isAfter(residence.getAvailable_to())) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        Residence newResidence = new Residence(
+                residence.getName(), residence.getAddress(), residence.getPrice_per_night(),
+                residence.getNumber_of_rooms(), residence.getGuest_capacity(), residence.getFloor(),
+                residence.getAvailable_from(), residence.getAvailable_to(), residence.getHost());
+
+        return residenceDAO.create(newResidence);
     }
-
-    if (residence.getAvailable_from().isAfter(residence.getAvailable_to())) {
-        throw new IllegalArgumentException("Start date cannot be after end date");
-    }
-
-    Residence newResidence = new Residence(
-            residence.getName(), residence.getAddress(), residence.getPrice_per_night(),
-            residence.getNumber_of_rooms(), residence.getGuest_capacity(), residence.getFloor(),
-            residence.getAvailable_from(), residence.getAvailable_to(), residence.getHost()
-    );
-
-    return residenceDAO.create(newResidence);
-}
     // ==================== READ ====================
 
     public List<Residence> getAllResidences() {
         log.info("Fetching all residences");
-        if(!residenceDAO.findAll().isEmpty()){
+        if (!residenceDAO.findAll().isEmpty()) {
             return residenceDAO.findAll();
-        }else{
+        } else {
             throw new ResidenceNotFoundException("No residence register");
         }
+    }
+
+    public Integer getResidenceCount() {
+        return residenceDAO.getResidenceCount();
     }
 
     public List<Residence> getResidencesByOwner(Long ownerId) {
@@ -79,37 +83,37 @@ public class ResidenceService {
         return residenceDAO.findByAddressAndFloor(address, floor)
                 .orElseThrow(() -> {
                     log.warn("Residence not found at Address: {} and Floor: {}", address, floor);
-                    return new ResidenceNotFoundException("Residence not found at Address: " + address + " and Floor: " + floor);
+                    return new ResidenceNotFoundException(
+                            "Residence not found at Address: " + address + " and Floor: " + floor);
                 });
     }
 
-public List<Residence> getResidenceByHostCode(String code) {
-    log.info("Fetching residences by host code: {}", code);
+    public List<Residence> getResidenceByHostCode(String code) {
+        log.info("Fetching residences by host code: {}", code);
 
-    Host host = hostDAO.findByHostCode(code)
-        .orElseThrow(() -> new UserNotFoundException(code));
+        Host host = hostDAO.findByHostCode(code)
+                .orElseThrow(() -> new UserNotFoundException(code));
 
-    return residenceDAO.findByHostId(host.getId());
-}
-
-    public MostPopularResidenceDTO get_MPRLM(){
-        log.info("Fetching the most popular home in the last month");
-        return residenceDAO.getMostPopularResidenceLastMonth()
-            .orElseThrow(() -> {
-                        log.warn("Residence not found");
-                        return new ResidenceNotFoundException("Residence not found");
-                    });
+        return residenceDAO.findByHostId(host.getId());
     }
 
-    public AVGNumberOfBeds getAvgNumberOfBeds(){
+    public MostPopularResidenceDTO get_MPRLM() {
+        log.info("Fetching the most popular home in the last month");
+        return residenceDAO.getMostPopularResidenceLastMonth()
+                .orElseThrow(() -> {
+                    log.warn("Residence not found");
+                    return new ResidenceNotFoundException("Residence not found");
+                });
+    }
+
+    public AVGNumberOfBeds getAvgNumberOfBeds() {
         log.info("Calculate average number of beds");
         return residenceDAO.getAvgNumberOfBeds()
                 .orElseThrow(() -> {
-                        log.warn("Residence not found");
-                        return new ResidenceNotFoundException("Residence not found");
-                    });
+                    log.warn("Residence not found");
+                    return new ResidenceNotFoundException("Residence not found");
+                });
     }
-
 
     // ==================== UPDATE ====================
 

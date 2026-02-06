@@ -27,7 +27,7 @@ public class ResidenceController implements Controller {
     private final ResidenceService residenceService;
     private final HostService hostService;
 
-    public ResidenceController(ResidenceService residenceService,HostService hostService) {
+    public ResidenceController(ResidenceService residenceService, HostService hostService) {
         this.residenceService = residenceService;
         this.hostService = hostService;
     }
@@ -42,6 +42,7 @@ public class ResidenceController implements Controller {
         app.get("/api/v1/residences/owner/host_code/{hostCode}", this::getResidencesByHostCode);
         app.get("/api/v1/residences/stats/mprlm", this::get_MPRLM);
         app.get("/api/v1/residences/stats/avg", this::get_AvgNumberOfBeds);
+        app.get("/api/v1/residences/stats/count", this::getResidenceCount);
         app.put("/api/v1/residences/{id}", this::updateResidence);
         app.delete("/api/v1/residences/{id}", this::deleteResidenceById);
         app.delete("/api/v1/residences/owner/{ownerId}", this::deleteResidencesByOwner);
@@ -54,9 +55,9 @@ public class ResidenceController implements Controller {
         try {
             ResidenceRequestDTO requestDTO = ctx.bodyAsClass(ResidenceRequestDTO.class);
             Host host = hostService.getHostById(requestDTO.getHostId());
-            Residence residence = ResidenceMapper.toEntity(requestDTO,host);
+            Residence residence = ResidenceMapper.toEntity(requestDTO, host);
             Residence createdResidence = residenceService.createResidence(residence);
-            ResidenceResponseDTO responseDTO= ResidenceMapper.toResponseDTO(createdResidence);
+            ResidenceResponseDTO responseDTO = ResidenceMapper.toResponseDTO(createdResidence);
             ctx.status(HttpStatus.CREATED).json(responseDTO);
             log.info("Residence successfully created: {}", createdResidence.getId());
         } catch (DuplicateResidenceException e) {
@@ -80,6 +81,11 @@ public class ResidenceController implements Controller {
         }
     }
 
+    private void getResidenceCount(Context ctx) {
+        log.info("GET /api/v1/residences/stats/count");
+        ctx.status(HttpStatus.OK).json(residenceService.getResidenceCount());
+    }
+
     private void getAllResidences(Context ctx) {
         log.info("GET /api/v1/residences - Request to fetch all residences");
         try {
@@ -87,7 +93,7 @@ public class ResidenceController implements Controller {
             List<ResidenceResponseDTO> responseDTOs = residences.stream()
                     .map(ResidenceMapper::toResponseDTO)
                     .collect(Collectors.toList());
-             ctx.status(HttpStatus.OK).json(responseDTOs);
+            ctx.status(HttpStatus.OK).json(responseDTOs);
             log.info("All residences retrieved successfully, count: {}", responseDTOs.size());
         } catch (Exception e) {
             log.error("Error fetching residences: {}", e.getMessage());
@@ -98,7 +104,8 @@ public class ResidenceController implements Controller {
     private void getResidenceByAddressAndFloor(Context ctx) {
         String address = ctx.pathParam("address");
         int floor = Integer.parseInt(ctx.pathParam("floor"));
-        log.info("GET /api/v1/residences/address/{}/floor/{} - Request to fetch residence by address and floor", address, floor);
+        log.info("GET /api/v1/residences/address/{}/floor/{} - Request to fetch residence by address and floor",
+                address, floor);
 
         try {
             Residence residence = residenceService.getResidenceByAddressAndFloor(address, floor);
@@ -125,17 +132,17 @@ public class ResidenceController implements Controller {
         } catch (ResidenceNotFoundException e) {
             log.error("Residences not found for owner ID {}: {}", ownerId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
-        } catch (HostNotFoundException e){
+        } catch (HostNotFoundException e) {
             log.error("Host not found with ID {}: {}", ownerId, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
-    private void getResidencesByHostCode(Context ctx){
+    private void getResidencesByHostCode(Context ctx) {
         String host_code = ctx.pathParam("hostCode");
         log.info("/api/v1/residences/owner/{} - Request to fetch residences by host code", host_code);
 
-        try{
+        try {
             List<Residence> residences = residenceService.getResidenceByHostCode(host_code);
             List<ResidenceResponseDTO> responseDTOs = residences.stream()
                     .map(ResidenceMapper::toResponseDTO)
@@ -150,7 +157,7 @@ public class ResidenceController implements Controller {
 
     private void get_MPRLM(Context ctx) {
         log.info("GET /api/v1/residences/stats/mprlm");
-        try{
+        try {
             MostPopularResidenceDTO dto = residenceService.get_MPRLM();
             ctx.status(200).json(dto);
             log.info("Most popular residence retrieved ");
@@ -160,7 +167,7 @@ public class ResidenceController implements Controller {
         }
     }
 
-    private void get_AvgNumberOfBeds(Context ctx){
+    private void get_AvgNumberOfBeds(Context ctx) {
         log.info("GET /api/v1/residences/stats/avg");
         try {
             AVGNumberOfBeds dto = residenceService.getAvgNumberOfBeds();
@@ -185,12 +192,12 @@ public class ResidenceController implements Controller {
             residenceUpdates.setId(id);
 
             Residence updatedResidence = residenceService.updateResidence(residenceUpdates);
-            
+
             ResidenceResponseDTO responseDTO = ResidenceMapper.toResponseDTO(updatedResidence);
-            
+
             ctx.status(HttpStatus.OK).json(responseDTO);
             log.info("Residence updated successfully: {}", id);
-            
+
         } catch (ResidenceNotFoundException e) {
             log.warn("Residence not found with ID {}: {}", id, e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
@@ -199,8 +206,6 @@ public class ResidenceController implements Controller {
             ctx.status(HttpStatus.BAD_REQUEST).result("Invalid request body");
         }
     }
-
-
 
     // ==================== DELETE ====================
     private void deleteResidenceById(Context ctx) {

@@ -21,7 +21,8 @@ public class FeedbackService {
 
     public Feedback createFeedback(Feedback feedback) {
         log.info("Attempt to insert feedback - Booking : {}, Title: {}", feedback.getBooking(), feedback.getTitle());
-        Feedback newFeedback = new Feedback(feedback.getBooking(),feedback.getUser(), feedback.getTitle(), feedback.getRating(), feedback.getComment());
+        Feedback newFeedback = new Feedback(feedback.getBooking(), feedback.getUser(), feedback.getTitle(),
+                feedback.getRating(), feedback.getComment());
         return feedbackDAO.create(newFeedback);
     }
 
@@ -39,6 +40,10 @@ public class FeedbackService {
     public List<Feedback> getAllFeedbacks() {
         log.info("Fetching all feedbacks");
         return feedbackDAO.findAll();
+    }
+
+    public Integer getFeedbackCount() {
+        return feedbackDAO.getFeedbackCount();
     }
 
     public List<Feedback> getFeedbacksByUser(Long userId) {
@@ -61,7 +66,7 @@ public class FeedbackService {
                 .orElseThrow(() -> {
                     log.warn("Feedback not found for User ID: {} and Booking ID: {}", userId, bookingId);
                     return new FeedbackNotFoundException("Feedback not found for User ID: " + userId +
-                                                        " and Booking ID: " + bookingId);
+                            " and Booking ID: " + bookingId);
                 });
     }
 
@@ -99,7 +104,7 @@ public class FeedbackService {
         if (!deleted) {
             log.warn("Failed to delete feedback - not found for User ID: {} and Booking ID: {}", userId, bookingId);
             throw new FeedbackNotFoundException("Feedback not found for User ID: " + userId +
-                                                " and Booking ID: " + bookingId);
+                    " and Booking ID: " + bookingId);
         }
         return true;
     }

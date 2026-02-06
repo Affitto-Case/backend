@@ -41,7 +41,8 @@ public class FeedbackController implements Controller {
         app.get("/api/v1/feedbacks/user/{userId}", this::getFeedbacksByUser);
         app.get("/api/v1/feedbacks/booking/{bookingId}", this::getFeedbacksByBooking);
         app.get("/api/v1/feedbacks/user/{userId}/booking/{bookingId}", this::getFeedbackByUserAndBooking);
-        app.put("/api/v1/feedbacks/{id}", this::updateFeedback); 
+        app.get("/api/v1/feedbacks/stats/count", this::getFeedbackCount);
+        app.put("/api/v1/feedbacks/{id}", this::updateFeedback);
         app.delete("/api/v1/feedbacks", this::deleteAllFeedbacks);
         app.delete("/api/v1/feedbacks/{id}", this::deleteFeedbackById);
     }
@@ -49,22 +50,22 @@ public class FeedbackController implements Controller {
     // ==================== CREATE ====================
     private void createFeedback(Context ctx) {
         log.info("POST /api/v1/feedbacks - Request to create feedback");
-        
+
         try {
             FeedbackRequestDTO requestDTO = ctx.bodyAsClass(FeedbackRequestDTO.class);
-            
+
             Booking booking = bookingService.getBookingById(requestDTO.getBookingId());
             User user = userService.getUserById(requestDTO.getUserId());
-            
+
             Feedback feedback = FeedbackMapper.toEntity(requestDTO, user, booking);
-            
+
             Feedback createdFeedback = feedbackService.createFeedback(feedback);
-            
+
             FeedbackResponseDTO responseDTO = FeedbackMapper.toResponseDTO(createdFeedback);
-            
+
             ctx.status(HttpStatus.CREATED).json(responseDTO);
             log.info("Feedback created successfully with ID: {}", createdFeedback.getId());
-            
+
         } catch (Exception e) {
             log.error("Error creating feedback: {}", e.getMessage());
             ctx.status(HttpStatus.BAD_REQUEST).result(e.getMessage());
@@ -89,7 +90,7 @@ public class FeedbackController implements Controller {
 
     private void getAllFeedbacks(Context ctx) {
         log.info("GET /api/v1/feedbacks - Request to fetch all feedbacks");
-        
+
         try {
             List<Feedback> feedbacks = feedbackService.getAllFeedbacks();
             List<FeedbackResponseDTO> responseDTOs = feedbacks.stream()
@@ -101,6 +102,11 @@ public class FeedbackController implements Controller {
             log.error("Error fetching feedbacks: {}", e.getMessage());
             ctx.status(HttpStatus.INTERNAL_SERVER_ERROR).result(e.getMessage());
         }
+    }
+
+    private void getFeedbackCount(Context ctx) {
+        log.info("GET /api/v1/feedbacks/stats/count");
+        ctx.status(HttpStatus.OK).json(feedbackService.getFeedbackCount());
     }
 
     private void getFeedbacksByUser(Context ctx) {
@@ -126,12 +132,12 @@ public class FeedbackController implements Controller {
 
         try {
             List<Feedback> feedbacks = feedbackService.getFeedbacksByBooking(bookingId);
-            
+
             // ✅ CORRETTO - Converte a DTO
             List<FeedbackResponseDTO> responseDTOs = feedbacks.stream()
                     .map(FeedbackMapper::toResponseDTO)
                     .collect(Collectors.toList());
-            
+
             ctx.status(HttpStatus.OK).json(responseDTOs);
             log.info("Feedbacks retrieved successfully for booking ID {}, total: {}", bookingId, responseDTOs.size());
         } catch (FeedbackNotFoundException e) {
@@ -143,14 +149,15 @@ public class FeedbackController implements Controller {
     private void getFeedbackByUserAndBooking(Context ctx) {
         Long userId = Long.valueOf(ctx.pathParam("userId"));
         Long bookingId = Long.valueOf(ctx.pathParam("bookingId"));
-        log.info("GET /api/v1/feedbacks/user/{}/booking/{} - Request to fetch feedback by user and booking", userId, bookingId);
+        log.info("GET /api/v1/feedbacks/user/{}/booking/{} - Request to fetch feedback by user and booking", userId,
+                bookingId);
 
         try {
             Feedback feedback = feedbackService.getFeedbackByUserAndBooking(userId, bookingId);
-            
+
             // ✅ CORRETTO - Converte a DTO
             FeedbackResponseDTO responseDTO = FeedbackMapper.toResponseDTO(feedback);
-            
+
             ctx.status(HttpStatus.OK).json(responseDTO);
             log.info("Feedback retrieved successfully for user ID {} and booking ID {}", userId, bookingId);
         } catch (FeedbackNotFoundException e) {
@@ -163,12 +170,12 @@ public class FeedbackController implements Controller {
     private void updateFeedback(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
         log.info("PUT /api/v1/feedbacks/{} - Request to update feedback", id);
-        
+
         try {
             FeedbackRequestDTO requestDTO = ctx.bodyAsClass(FeedbackRequestDTO.class);
-            
+
             Feedback existingFeedback = feedbackService.getFeedbackById(id);
-            
+
             if (requestDTO.getTitle() != null) {
                 existingFeedback.setTitle(requestDTO.getTitle());
             }
@@ -178,14 +185,14 @@ public class FeedbackController implements Controller {
             if (requestDTO.getComment() != null) {
                 existingFeedback.setComment(requestDTO.getComment());
             }
-            
+
             Feedback updatedFeedback = feedbackService.updateFeedback(existingFeedback);
-            
+
             FeedbackResponseDTO responseDTO = FeedbackMapper.toResponseDTO(updatedFeedback);
-            
+
             ctx.status(HttpStatus.OK).json(responseDTO);
             log.info("Feedback updated successfully: ID {}", id);
-            
+
         } catch (FeedbackNotFoundException e) {
             log.error("Feedback not found for update: {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());

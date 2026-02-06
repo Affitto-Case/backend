@@ -21,15 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserDAOImpl implements UserDAO {
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
     @Override
     public User create(User user) {
         log.info("Creating new user with email: {}", user.getEmail());
         String sql = "INSERT INTO users (first_name, last_name, email, password, address, registration_date) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, registration_date";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
@@ -48,7 +48,7 @@ public class UserDAOImpl implements UserDAO {
                     throw new SQLException("Creating user failed, no ID obtained.");
                 }
             }
-            
+
             return user;
 
         } catch (SQLException e) {
@@ -57,7 +57,7 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     @Override
     public List<User> findAll() {
@@ -66,8 +66,8 @@ public class UserDAOImpl implements UserDAO {
         List<User> users = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
@@ -88,7 +88,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "SELECT id, first_name, last_name, email, password, address, registration_date FROM users WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, id);
 
@@ -115,7 +115,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "SELECT id, first_name, last_name, email, password, address, registration_date FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
 
@@ -136,25 +136,25 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    public List<UserMostDayBooking> findUserMostDayBooking(){
+    public List<UserMostDayBooking> findUserMostDayBooking() {
         log.info("Finding user with most day of booking: ");
-        String sql="SELECT \r\n" + //
-                        "    u.id AS user_id,\r\n" + //
-                        "    first_name, last_name, email,\r\n" + //
-                        "    SUM(b.end_date::date - b.start_date::date) AS total_days\r\n" + //
-                        "FROM users u\r\n" + //
-                        "JOIN bookings b ON u.id = b.user_id\r\n" + //
-                        "WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')\r\n" + //
-                        "  AND b.start_date <  date_trunc('month', current_date)\r\n" + //
-                        "GROUP BY u.id\r\n" + //
-                        "ORDER BY total_days DESC\r\n" + //
-                        "LIMIT 5;\r\n" + //
-                        "";
+        String sql = "SELECT \r\n" + //
+                "    u.id AS user_id,\r\n" + //
+                "    first_name, last_name, email,\r\n" + //
+                "    SUM(b.end_date::date - b.start_date::date) AS total_days\r\n" + //
+                "FROM users u\r\n" + //
+                "JOIN bookings b ON u.id = b.user_id\r\n" + //
+                "WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')\r\n" + //
+                "  AND b.start_date <  date_trunc('month', current_date)\r\n" + //
+                "GROUP BY u.id\r\n" + //
+                "ORDER BY total_days DESC\r\n" + //
+                "LIMIT 5;\r\n" + //
+                "";
         List<UserMostDayBooking> users = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 UserMostDayBooking dto = new UserMostDayBooking();
                 dto.setUserId(rs.getLong("user_id"));
@@ -169,9 +169,9 @@ public class UserDAOImpl implements UserDAO {
             throw new RuntimeException("Error retrieving hosts", e);
         }
         return users;
-    } 
+    }
 
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
     @Override
     public Optional<User> update(User user) {
@@ -179,7 +179,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, password = ?, address = ?, registration_date = ? WHERE id = ? RETURNING id, first_name, last_name, email, password, address, registration_date";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
@@ -206,7 +206,7 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     @Override
     public boolean deleteById(Long id) {
@@ -214,7 +214,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "DELETE FROM users WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, id);
             int rowsAffected = ps.executeUpdate();
@@ -223,7 +223,7 @@ public class UserDAOImpl implements UserDAO {
                 log.info("Successfully deleted user with ID: {}", id);
                 return true;
             }
-            
+
             log.warn("No user deleted with ID: {}", id);
             return false;
 
@@ -239,7 +239,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "DELETE FROM users";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int deleted = ps.executeUpdate();
             log.info("Successfully deleted {} users", deleted);
@@ -257,7 +257,7 @@ public class UserDAOImpl implements UserDAO {
         String sql = "DELETE FROM users WHERE email = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             int rowsAffected = ps.executeUpdate();
@@ -266,7 +266,7 @@ public class UserDAOImpl implements UserDAO {
                 log.info("Successfully deleted user with email: {}", email);
                 return true;
             }
-            
+
             log.warn("No user deleted with email: {}", email);
             return false;
 
@@ -276,7 +276,30 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-// ==================== UTILITY ====================
+    @Override
+    public Integer getUserCount() {
+        log.info("Returning count of all users");
+        String sql = "SELECT COUNT(*) AS total FROM users";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                Integer count = rs.getInt("total");
+                log.info("Successfully retrieved {} users count", count);
+                return count;
+            }
+
+            return 0;
+
+        } catch (SQLException e) {
+            log.error("Error retrieving users count", e);
+            throw new RuntimeException("Error retrieving users count", e);
+        }
+    }
+
+    // ==================== UTILITY ====================
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();

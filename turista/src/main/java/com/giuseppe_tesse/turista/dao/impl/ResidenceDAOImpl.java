@@ -21,21 +21,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResidenceDAOImpl implements ResidenceDAO {
 
-    private final String SELECT_WITH_HOST = 
-        "SELECT r.*, u.first_name, u.last_name, u.email, h.host_code " +
-        "FROM residences r " +
-        "JOIN hosts h ON r.host_id = h.user_id " +
-        "JOIN users u ON h.user_id = u.id ";
+    private final String SELECT_WITH_HOST = "SELECT r.*, u.first_name, u.last_name, u.email, h.host_code " +
+            "FROM residences r " +
+            "JOIN hosts h ON r.host_id = h.user_id " +
+            "JOIN users u ON h.user_id = u.id ";
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
     @Override
     public Residence create(Residence residence) {
         log.info("Creating new residence: {}", residence.getName());
         String sql = "INSERT INTO residences (name, address, number_of_rooms, number_of_beds, floor, price, availability_start, availability_end, host_id) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id,host_id";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, residence.getName());
             ps.setString(2, residence.getAddress());
@@ -51,7 +50,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                 if (rs.next()) {
                     residence.setId(rs.getLong("id"));
                     log.info("Residence created successfully with ID: {}", residence.getId());
-                    
+
                 } else {
                     log.error("Creating residence failed, no ID obtained");
                     throw new SQLException("Creating residence failed, no ID obtained.");
@@ -66,7 +65,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         }
     }
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     @Override
     public List<Residence> findAll() {
@@ -74,8 +73,8 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_WITH_HOST);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(SELECT_WITH_HOST);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 residences.add(mapResultSetToResidence(rs));
@@ -97,7 +96,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, hostId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -105,7 +104,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                     residences.add(mapResultSetToResidence(rs));
                 }
             }
-            
+
             log.info("Successfully retrieved {} residences for host ID: {}", residences.size(), hostId);
             return residences;
 
@@ -121,7 +120,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         String sql = SELECT_WITH_HOST + " WHERE r.id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -131,10 +130,10 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                     return Optional.of(residence);
                 }
             }
-            
+
             log.warn("No residence found with ID: {}", id);
             return Optional.empty();
-            
+
         } catch (SQLException e) {
             log.error("Error finding residence by ID: {}", id, e);
             throw new RuntimeException("Error finding residence by ID", e);
@@ -144,10 +143,10 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public Optional<Residence> findByAddressAndFloor(String address, int floor) {
         log.info("Finding residence by address: {} and floor: {}", address, floor);
-        String sql = SELECT_WITH_HOST+"WHERE r.address = ? AND floor = ?";
+        String sql = SELECT_WITH_HOST + "WHERE r.address = ? AND floor = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, address);
             ps.setInt(2, floor);
@@ -158,10 +157,10 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                     return Optional.of(residence);
                 }
             }
-            
+
             log.warn("No residence found at address: {}, floor: {}", address, floor);
             return Optional.empty();
-            
+
         } catch (SQLException e) {
             log.error("Error finding residence by address: {} and floor: {}", address, floor, e);
             throw new RuntimeException("Error finding residence by address and floor", e);
@@ -171,14 +170,15 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     @Override
     public List<Residence> findByHostCode(String code) {
         log.info("Finding residences by host code: {}", code);
-        String sql = "SELECT r.id, r.name, r.address, r.number_of_rooms, r.number_of_beds, r.floor, r.price, r.availability_start, r.availability_end, r.host_id " +
-                     "FROM residences r " +
-                     "JOIN hosts h ON r.host_id = h.user_id " +
-                     "WHERE h.host_code = ?";
+        String sql = "SELECT r.id, r.name, r.address, r.number_of_rooms, r.number_of_beds, r.floor, r.price, r.availability_start, r.availability_end, r.host_id "
+                +
+                "FROM residences r " +
+                "JOIN hosts h ON r.host_id = h.user_id " +
+                "WHERE h.host_code = ?";
         List<Residence> residences = new ArrayList<>();
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, code);
             try (ResultSet rs = ps.executeQuery()) {
@@ -186,7 +186,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
                     residences.add(mapResultSetToResidence(rs));
                 }
             }
-            
+
             log.info("Successfully retrieved {} residences for host code: {}", residences.size(), code);
             return residences;
 
@@ -197,51 +197,50 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     }
 
     public Optional<MostPopularResidenceDTO> getMostPopularResidenceLastMonth() {
-    String sql = """
-        SELECT 
-            r.id AS residence_id,
-            r.name,
-            COUNT(b.id) AS total_bookings
-        FROM residences r
-        JOIN bookings b ON r.id = b.residence_id
-        WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')
-          AND b.start_date <  date_trunc('month', current_date)
-        GROUP BY r.id, r.name
-        ORDER BY total_bookings DESC
-        LIMIT 1
-    """;
+        String sql = """
+                    SELECT
+                        r.id AS residence_id,
+                        r.name,
+                        COUNT(b.id) AS total_bookings
+                    FROM residences r
+                    JOIN bookings b ON r.id = b.residence_id
+                    WHERE b.start_date >= date_trunc('month', current_date - interval '1 month')
+                      AND b.start_date <  date_trunc('month', current_date)
+                    GROUP BY r.id, r.name
+                    ORDER BY total_bookings DESC
+                    LIMIT 1
+                """;
 
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql);
-         ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
-        if (rs.next()) {
-            MostPopularResidenceDTO dto = new MostPopularResidenceDTO();
-            dto.setResidenceId(rs.getLong("residence_id"));
-            dto.setName(rs.getString("name"));
-            dto.setTotalBookings(rs.getInt("total_bookings"));
-            return Optional.of(dto);
+            if (rs.next()) {
+                MostPopularResidenceDTO dto = new MostPopularResidenceDTO();
+                dto.setResidenceId(rs.getLong("residence_id"));
+                dto.setName(rs.getString("name"));
+                dto.setTotalBookings(rs.getInt("total_bookings"));
+                return Optional.of(dto);
+            }
+
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        return Optional.empty();
     }
-    catch (SQLException e) {
-        throw new RuntimeException(e);
-    }
-}
 
     @Override
-    public Optional<AVGNumberOfBeds> getAvgNumberOfBeds(){
+    public Optional<AVGNumberOfBeds> getAvgNumberOfBeds() {
         log.info("Getting the average number of beds");
-        String sql="SELECT \r\n" + //
-                        "    ROUND(AVG(number_of_beds), 2) AS average_number_of_beds\r\n" + //
-                        "FROM residences;\r\n" + //
-                        "";
+        String sql = "SELECT \r\n" + //
+                "    ROUND(AVG(number_of_beds), 2) AS average_number_of_beds\r\n" + //
+                "FROM residences;\r\n" + //
+                "";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    AVGNumberOfBeds dto= new AVGNumberOfBeds();
+                    AVGNumberOfBeds dto = new AVGNumberOfBeds();
                     dto.setAvgnumberOfBeds(rs.getDouble("average_number_of_beds"));
                     log.info("Successfully!! ");
                     return Optional.of(dto);
@@ -249,30 +248,31 @@ public class ResidenceDAOImpl implements ResidenceDAO {
             }
             log.warn("No residence found ");
             return Optional.empty();
-            
+
         } catch (SQLException e) {
             log.error("Error calculate number of beds : {}", e);
             throw new RuntimeException("Error calculate number of beds ", e);
         }
     }
 
-
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
     @Override
     public Optional<Residence> update(Residence residence) {
         log.info("Updating residence with ID: {}", residence.getId());
         String sql = "UPDATE residences r\r\n" + //
-                        "SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=?\r\n" + //
-                        "FROM hosts h\r\n" + //
-                        "JOIN users u ON h.user_id = u.id\r\n" + //
-                        "WHERE r.id=?\r\n" + //
-                        "RETURNING r.id, r.name, r.address, r.number_of_rooms, r.number_of_beds, r.floor, r.price, r.availability_start, r.availability_end, r.host_id,\r\n" + //
-                        "          u.first_name, u.last_name, u.email, h.host_code\r\n" + //
-                        "";
+                "SET name=?, address=?, number_of_rooms=?, number_of_beds=?, floor=?, price=?, availability_start=?, availability_end=?\r\n"
+                + //
+                "FROM hosts h\r\n" + //
+                "JOIN users u ON h.user_id = u.id\r\n" + //
+                "WHERE r.id=?\r\n" + //
+                "RETURNING r.id, r.name, r.address, r.number_of_rooms, r.number_of_beds, r.floor, r.price, r.availability_start, r.availability_end, r.host_id,\r\n"
+                + //
+                "          u.first_name, u.last_name, u.email, h.host_code\r\n" + //
+                "";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, residence.getName());
             ps.setString(2, residence.getAddress());
@@ -301,27 +301,27 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         }
     }
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     @Override
     public boolean deleteById(Long id) {
         log.info("Deleting residence with ID: {}", id);
         String sql = "DELETE FROM residences WHERE id = ?";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setLong(1, id);
             int rowsAffected = ps.executeUpdate();
-            
+
             if (rowsAffected > 0) {
                 log.info("Successfully deleted residence with ID: {}", id);
                 return true;
             }
-            
+
             log.warn("No residence deleted with ID: {}", id);
             return false;
-            
+
         } catch (SQLException e) {
             log.error("Error deleting residence with ID: {}", id, e);
             throw new RuntimeException("Error deleting residence", e);
@@ -332,14 +332,14 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     public int deleteAll() {
         log.info("Deleting all residences");
         String sql = "DELETE FROM residences";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             int deleted = ps.executeUpdate();
             log.info("Successfully deleted {} residences", deleted);
             return deleted;
-            
+
         } catch (SQLException e) {
             log.error("Error deleting all residences", e);
             throw new RuntimeException("Error deleting all residences", e);
@@ -350,30 +350,53 @@ public class ResidenceDAOImpl implements ResidenceDAO {
     public boolean deleteByHostId(Long hostId) {
         log.info("Deleting residences for host ID: {}", hostId);
         String sql = "DELETE FROM residences WHERE host_id = ?";
-        
+
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setLong(1, hostId);
             int rowsAffected = ps.executeUpdate();
-            
+
             if (rowsAffected > 0) {
                 log.info("Successfully deleted {} residences for host ID: {}", rowsAffected, hostId);
                 return true;
             }
-            
+
             log.warn("No residences deleted for host ID: {}", hostId);
             return false;
-            
+
         } catch (SQLException e) {
             log.error("Error deleting residences by host ID: {}", hostId, e);
             throw new RuntimeException("Error deleting residences by host ID", e);
         }
     }
 
-// ==================== UTILITY ====================
+    @Override
+    public Integer getResidenceCount() {
+        log.info("Returning count of all residences");
+        String sql = "SELECT COUNT(*) AS total FROM residences";
 
-   private Residence mapResultSetToResidence(ResultSet rs) throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                Integer count = rs.getInt("total");
+                log.info("Successfully retrieved {} residences count", count);
+                return count;
+            }
+
+            return 0;
+
+        } catch (SQLException e) {
+            log.error("Error retrieving residences count", e);
+            throw new RuntimeException("Error retrieving residences count", e);
+        }
+    }
+
+    // ==================== UTILITY ====================
+
+    private Residence mapResultSetToResidence(ResultSet rs) throws SQLException {
         Residence residence = new Residence();
         residence.setId(rs.getLong("id"));
         residence.setName(rs.getString("name"));
@@ -384,7 +407,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         residence.setPrice_per_night(rs.getDouble("price"));
         residence.setAvailable_from(DateConverter.date2LocalDate(rs.getDate("availability_start")));
         residence.setAvailable_to(DateConverter.date2LocalDate(rs.getDate("availability_end")));
-        
+
         Host host = new Host();
         host.setId(rs.getLong("host_id"));
         host.setFirstName(rs.getString("first_name"));
@@ -392,8 +415,7 @@ public class ResidenceDAOImpl implements ResidenceDAO {
         host.setEmail(rs.getString("email"));
         host.setHost_code(rs.getString("host_code"));
         residence.setHost(host);
-        
-        
+
         return residence;
     }
 }

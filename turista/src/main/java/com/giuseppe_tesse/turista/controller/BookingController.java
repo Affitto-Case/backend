@@ -45,6 +45,7 @@ public class BookingController implements Controller {
         app.get("/api/v1/bookings/user/{userId}/last",this::getLastBookingByUserId);
         app.get("/api/v1/bookings/user/{userId}",this::getBookingsByUserId);
         app.get("/api/v1/stats/hosts",this::getMostPopularHosts);
+        app.get("/api/v1/bookings/stats/count",this::getAllBookingCount);
         app.put("/api/v1/bookings/{id}", this::updateBooking);
         app.delete("/api/v1/bookings/{id}", this::deleteBookingById);
         app.delete("/api/v1/bookings", this::deleteAllBookings);
@@ -151,6 +152,11 @@ public class BookingController implements Controller {
     List<TopHostDTO> result = bookingService.getMostPopularHostsLastMonth();
     ctx.status(200).json(result);
 }
+
+    private void getAllBookingCount(Context ctx){
+        log.info("GET /api/v1/bookings/count ");
+        ctx.status(200).json(bookingService.getBookingCount());
+    }
 
 
     // ==================== UPDATE ====================

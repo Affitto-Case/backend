@@ -27,6 +27,8 @@ public interface BookingDAO {
 
     List<TopHostDTO> getMostPopularHostsLastMonth();
 
+    Integer getBookingCount();
+
 // ==================== UPDATE ====================
 
     Optional<Booking> update(Booking booking);

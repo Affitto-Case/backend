@@ -20,7 +20,7 @@ public class HostService {
     private final UserDAO userDAO;
     private final BookingDAO bookingDAO;
 
-    public HostService(HostDAO hostDAO, UserDAO userDAO,BookingDAO bookingDAO) {
+    public HostService(HostDAO hostDAO, UserDAO userDAO, BookingDAO bookingDAO) {
         this.hostDAO = hostDAO;
         this.userDAO = userDAO;
         this.bookingDAO = bookingDAO;
@@ -30,12 +30,12 @@ public class HostService {
         log.info("Promoting user {} to Host", userId);
         User user = userDAO.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
-        
-        if(hostDAO.findById(userId).isPresent()){
+
+        if (hostDAO.findById(userId).isPresent()) {
             log.warn("Host creation failed - Host already exists: {}", userId);
-            throw new DuplicateHostException("userId", ""+userId);
+            throw new DuplicateHostException("userId", "" + userId);
         }
-        
+
         Host host = new Host();
         host.setId(user.getId());
         host.setFirstName(user.getFirstName());
@@ -54,10 +54,14 @@ public class HostService {
         List<Host> hosts = new ArrayList<>();
         for (Host host : hosts_tmp) {
             int total = bookingDAO.countTotalBookingsByHostCode(host.getHost_code());
-            host.setTotal_bookings(total); 
+            host.setTotal_bookings(total);
             hosts.add(host);
         }
         return hosts;
+    }
+
+    public Integer getHostCount() {
+        return hostDAO.getHostCount();
     }
 
     public Host getHostById(Long id) {
@@ -67,7 +71,7 @@ public class HostService {
         return host;
     }
 
-    public Host getByHostCode(String host_code){
+    public Host getByHostCode(String host_code) {
         Host host = hostDAO.findByHostCode(host_code).orElseThrow(() -> new UserNotFoundException(host_code));
         int total = bookingDAO.countTotalBookingsByHostCode(host_code);
         host.setTotal_bookings(total);
@@ -79,22 +83,22 @@ public class HostService {
         List<Host> hosts = new ArrayList<>();
         for (Host host : hosts_tmp) {
             int total = bookingDAO.countTotalBookingsByHostCode(host.getHost_code());
-            host.setTotal_bookings(total); 
+            host.setTotal_bookings(total);
             hosts.add(host);
         }
         return hosts;
     }
 
-public List<TopHostDTO> getTopHostsLastMonth() {
+    public List<TopHostDTO> getTopHostsLastMonth() {
         List<TopHostDTO> hosts = hostDAO.getTopHostsLastMonth();
 
         return hosts;
     }
 
-public void updateHostStats(Host host) {
-    log.info("Updating stats for Host Code: {}. Bookings: {}, SuperHost: {}", 
-              host.getHost_code(), host.getTotal_bookings(), host.isSuperHost());
-    hostDAO.updateHostStats(host.getId(), host.getTotal_bookings(), host.isSuperHost());
-}
-    
+    public void updateHostStats(Host host) {
+        log.info("Updating stats for Host Code: {}. Bookings: {}, SuperHost: {}",
+                host.getHost_code(), host.getTotal_bookings(), host.isSuperHost());
+        hostDAO.updateHostStats(host.getId(), host.getTotal_bookings(), host.isSuperHost());
+    }
+
 }

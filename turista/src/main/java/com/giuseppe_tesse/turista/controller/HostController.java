@@ -30,22 +30,28 @@ public class HostController implements Controller {
         app.post("/api/v1/hosts", this::createHost);
         app.get("/api/v1/hosts", this::getAllHosts);
         app.get("/api/v1/hosts/{id}", this::getHostById);
-        app.get("/api/v1/super_hosts",this::getAllSuperHosts);
-        app.get("/api/v1/stats/hosts/top",this::getTopHosts);
+        app.get("/api/v1/hosts/stats/count", this::getHostCount);
+        app.get("/api/v1/super_hosts", this::getAllSuperHosts);
+        app.get("/api/v1/stats/hosts/top", this::getTopHosts);
     }
 
     private void createHost(Context ctx) {
         CreateHostDTO resp = ctx.bodyAsClass(CreateHostDTO.class);
         Long userId = resp.getUserId();
-        try{
+        try {
             Host host = hostService.createHost(userId);
             HostResponseDTO responseDTO = HostMapper.toResponseDTO(host);
             ctx.status(HttpStatus.CREATED).json(responseDTO);
             log.info("Host successfully created");
-        }catch(DuplicateHostException e){
+        } catch (DuplicateHostException e) {
             log.error("Failed to create host: {}", e.getMessage());
             ctx.status(HttpStatus.CONFLICT).result(e.getMessage());
         }
+    }
+
+    private void getHostCount(Context ctx) {
+        log.info("GET /api/v1/hosts/stats/count");
+        ctx.status(HttpStatus.OK).json(hostService.getHostCount());
     }
 
     private void getAllHosts(Context ctx) {
@@ -78,25 +84,25 @@ public class HostController implements Controller {
 
     private void getHostById(Context ctx) {
         Long id = Long.valueOf(ctx.pathParam("id"));
-        try{
+        try {
             Host host = hostService.getHostById(id);
             HostResponseDTO responseDTO = HostMapper.toResponseDTO(host);
             ctx.status(HttpStatus.OK).json(responseDTO);
-        }catch(HostNotFoundException e){
+        } catch (HostNotFoundException e) {
             log.error("Host not found: {}", e.getMessage());
-            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage()); 
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 
     public void getTopHosts(Context ctx) {
         log.info("GET /api/v1/stats/hosts/top");
-        try{
+        try {
             List<TopHostDTO> result = hostService.getTopHostsLastMonth();
             ctx.status(200).json(result);
             log.info("Returned {} top hosts", result.size());
-        }catch(HostNotFoundException e){
+        } catch (HostNotFoundException e) {
             log.error("Host not found: {}", e.getMessage());
-            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage()); 
+            ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
     }
 }

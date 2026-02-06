@@ -9,11 +9,11 @@ import com.giuseppe_tesse.turista.model.Residence;
 
 public interface ResidenceDAO {
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
     Residence create(Residence residence);
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     List<Residence> findAll();
 
@@ -21,22 +21,24 @@ public interface ResidenceDAO {
     List<Residence> findByHostId(Long hostId);
 
     Optional<Residence> findById(Long id);
-    
+
+    Integer getResidenceCount();
+
     // Ricerca per indirizzo e piano
     Optional<Residence> findByAddressAndFloor(String address, int floor);
 
-    //Ricerca per codice host
+    // Ricerca per codice host
     List<Residence> findByHostCode(String code);
 
     Optional<MostPopularResidenceDTO> getMostPopularResidenceLastMonth();
 
     Optional<AVGNumberOfBeds> getAvgNumberOfBeds();
 
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
     Optional<Residence> update(Residence residence);
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     int deleteAll();
 
@@ -44,5 +46,5 @@ public interface ResidenceDAO {
 
     // Elimina tutte le residenze di un determinato host
     boolean deleteByHostId(Long hostId);
-    
+
 }

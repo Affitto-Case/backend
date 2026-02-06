@@ -90,6 +90,10 @@ public class BookingService {
         return hosts;
     }
 
+    public Integer getBookingCount(){
+        return bookingDAO.getBookingCount();
+    }
+
     // ==================== UPDATE ====================
 
     public Booking updateBooking(Booking booking) {
@@ -103,11 +107,19 @@ public class BookingService {
     public boolean deleteBookingById(Long id) {
         log.info("Attempting to delete booking with ID: {}", id);
 
+        Booking bookingDelete = bookingDAO.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
         boolean deleted = bookingDAO.deleteById(id);
         if (!deleted) {
             log.warn("Delete failed - Booking not found with ID: {}", id);
             throw new BookingNotFoundException(id);
         }
+        Residence residence = residenceDAO.findById(bookingDelete.getResidence().getId())
+                    .orElseThrow(() -> new ResidenceNotFoundException(bookingDelete.getResidence().getId()));
+        
+        String hostCode = residence.getHost().getHost_code();
+
+        refreshSuperHostStatus(hostCode, hostService);
+        
         return true;
     }
 

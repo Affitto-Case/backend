@@ -24,31 +24,34 @@ public class UserService {
 
     // ==================== CREATE ====================
 
-   public User createUser(User user) {
-    log.info("Attempt to create user - First name: {}, Last name: {}, Email: {}",
-            user.getFirstName(), user.getLastName(), user.getEmail());
+    public User createUser(User user) {
+        log.info("Attempt to create user - First name: {}, Last name: {}, Email: {}",
+                user.getFirstName(), user.getLastName(), user.getEmail());
 
-    if (userDAO.findByEmail(user.getEmail()).isPresent()) {
-        log.warn("User creation failed - Email already exists: {}", user.getEmail());
-        throw new DuplicateUserException("email", user.getEmail());
+        if (userDAO.findByEmail(user.getEmail()).isPresent()) {
+            log.warn("User creation failed - Email already exists: {}", user.getEmail());
+            throw new DuplicateUserException("email", user.getEmail());
+        }
+
+        User newUser = new User(
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                hashPassword(user.getPassword()),
+                user.getAddress(),
+                LocalDate.now());
+
+        return userDAO.create(newUser);
     }
-    
-    User newUser = new User(
-            user.getFirstName(),
-            user.getLastName(),
-            user.getEmail(),
-            hashPassword(user.getPassword()),
-            user.getAddress(),
-            LocalDate.now()
-    );
-
-    return userDAO.create(newUser);
-}
     // ==================== READ ====================
 
     public List<User> getAllUsers() {
         log.info("Fetching all users");
         return userDAO.findAll();
+    }
+
+    public Integer getUserCount() {
+        return userDAO.getUserCount();
     }
 
     public User getUserById(Long id) {
@@ -67,7 +70,7 @@ public class UserService {
         });
     }
 
-    public List<UserMostDayBooking> getUserMostDayBooking(){
+    public List<UserMostDayBooking> getUserMostDayBooking() {
         log.info("Searching 5 user with most day booking ");
         return userDAO.findUserMostDayBooking();
     }
@@ -86,7 +89,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(user.getId()));
     }
 
-    public String hashPassword(String password){
+    public String hashPassword(String password) {
         log.info("Updating password ");
         return PasswordHasher.hash(password);
     }

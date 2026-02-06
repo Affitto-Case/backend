@@ -12,6 +12,8 @@ public interface HostDAO {
 
     Optional<Host> findById(Long id);
 
+    Integer getHostCount();
+
     Optional<Host> findByHostCode(String hostCode);
 
     List<Host> getAllSuperHost();

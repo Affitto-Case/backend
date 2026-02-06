@@ -286,6 +286,31 @@ private final String BOOKINGS_TOTAL_BY_HOST=
     }
 }
 
+    public Integer getBookingCount() {
+        
+        log.info("Return count of all booking");
+        String sql = "SELECT COUNT(b.id) AS total FROM bookings b";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                Integer count = rs.getInt("total");
+
+                log.info("Successfully retrieved {} bookings", count);
+                return count;
+            }
+
+            return 0;
+
+        } catch (SQLException e) {
+            log.error("Error retrieving all bookings", e);
+            throw new RuntimeException("Error retrieving bookings", e);
+        }
+    }
+
+
 
     
 // ==================== UPDATE ====================

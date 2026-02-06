@@ -6,13 +6,15 @@ import com.giuseppe_tesse.turista.model.Feedback;
 
 public interface FeedbackDAO {
 
-// ==================== CREATE ====================
+    // ==================== CREATE ====================
 
     Feedback create(Feedback feedback);
 
-// ==================== READ ====================
+    // ==================== READ ====================
 
     List<Feedback> findAll();
+
+    Integer getFeedbackCount();
 
     // Ricerca feedback lasciati da uno specifico utente
     List<Feedback> findByUserId(Long userId);
@@ -25,12 +27,12 @@ public interface FeedbackDAO {
     // Ricerca il feedback specifico di un utente per una determinata prenotazione
     Optional<Feedback> findByUserIdAndBookingId(Long userId, Long bookingId);
 
-// ==================== UPDATE ====================
+    // ==================== UPDATE ====================
 
     // Aggiorna il commento di un feedback esistente
     Optional<Feedback> update(Feedback feedback);
 
-// ==================== DELETE ====================
+    // ==================== DELETE ====================
 
     int deleteAll();
 

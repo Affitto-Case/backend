@@ -266,6 +266,29 @@ public class HostDAOImpl implements HostDAO {
     }
 
     @Override
+    public Integer getHostCount() {
+        log.info("Returning count of all hosts");
+        String sql = "SELECT COUNT(*) AS total FROM hosts";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                Integer count = rs.getInt("total");
+                log.info("Successfully retrieved {} hosts count", count);
+                return count;
+            }
+
+            return 0;
+
+        } catch (SQLException e) {
+            log.error("Error retrieving hosts count", e);
+            throw new RuntimeException("Error retrieving hosts count", e);
+        }
+    }
+
+    @Override
     public void updateHostStats(Long hostId, int totalBookings, boolean isSuper) {
         String sql = "UPDATE hosts SET total_bookings = ?, is_super_host = ? WHERE user_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();

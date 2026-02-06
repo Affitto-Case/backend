@@ -32,8 +32,9 @@ public class UserController implements Controller {
         app.post("/api/v1/users", this::createUser);
         app.get("/api/v1/users/{id}", this::getUserById);
         app.get("/api/v1/users", this::getAllUsers);
+        app.get("/api/v1/users/stats/count", this::getUserCount);
         app.get("/api/v1/users/email/{email}", this::getUserByEmail);
-        app.get("/api/v1/users/stats/mdb",this::getUserMostDayBooking);
+        app.get("/api/v1/users/stats/mdb", this::getUserMostDayBooking);
         app.put("/api/v1/users/{id}", this::updateUser);
         app.delete("/api/v1/users/{id}", this::deleteUserById);
         app.delete("/api/v1/users", this::deleteAllUsers);
@@ -45,7 +46,7 @@ public class UserController implements Controller {
         log.info("POST /api/v1/users - Request to create user");
         try {
             UserRequestDTO requestDTO = ctx.bodyAsClass(UserRequestDTO.class);
-            User user= UserMapper.toEntity(requestDTO);
+            User user = UserMapper.toEntity(requestDTO);
             User createdUser = userService.createUser(user);
             UserResponseDTO responseDTO = UserMapper.toResponseDTO(createdUser);
             ctx.status(HttpStatus.CREATED).json(responseDTO);
@@ -76,12 +77,17 @@ public class UserController implements Controller {
         try {
             List<User> users = userService.getAllUsers();
             List<UserResponseDTO> responseDTOs = users.stream()
-                .map(UserMapper::toResponseDTO)
-                .collect(Collectors.toList());
+                    .map(UserMapper::toResponseDTO)
+                    .collect(Collectors.toList());
             ctx.status(HttpStatus.OK).json(responseDTOs);
-            log.info("All users retrieved successfully, total: {}", responseDTOs.size()); 
+            log.info("All users retrieved successfully, total: {}", responseDTOs.size());
         } catch (Exception e) {
         }
+    }
+
+    private void getUserCount(Context ctx) {
+        log.info("GET /api/v1/users/stats/count");
+        ctx.status(HttpStatus.OK).json(userService.getUserCount());
     }
 
     private void getUserByEmail(Context ctx) {
@@ -98,13 +104,13 @@ public class UserController implements Controller {
         }
     }
 
-    private void getUserMostDayBooking(Context ctx){
+    private void getUserMostDayBooking(Context ctx) {
         log.info("GET /api/v1/users/stats/mdb - Request to fetch user with most day booking");
-        try{
+        try {
             List<UserMostDayBooking> users = userService.getUserMostDayBooking();
             ctx.status(HttpStatus.OK).json(users);
             log.info("User retrieved successfully: {}", users.size());
-        }catch (UserNotFoundException e) {
+        } catch (UserNotFoundException e) {
             log.error("User not found {}", e.getMessage());
             ctx.status(HttpStatus.NOT_FOUND).result(e.getMessage());
         }
@@ -117,20 +123,20 @@ public class UserController implements Controller {
         try {
             UserRequestDTO requestDTO = ctx.bodyAsClass(UserRequestDTO.class);
             User existingUser = userService.getUserById(id);
-            if (requestDTO.getFirstName() != null){
+            if (requestDTO.getFirstName() != null) {
                 existingUser.setFirstName(requestDTO.getFirstName());
             }
-            if (requestDTO.getLastName() != null){
-                 existingUser.setLastName(requestDTO.getLastName());
+            if (requestDTO.getLastName() != null) {
+                existingUser.setLastName(requestDTO.getLastName());
             }
-            if (requestDTO.getEmail() != null){
-                 existingUser.setEmail(requestDTO.getEmail());
+            if (requestDTO.getEmail() != null) {
+                existingUser.setEmail(requestDTO.getEmail());
             }
-            if (requestDTO.getPassword() != null){
+            if (requestDTO.getPassword() != null) {
                 existingUser.setPassword(userService.hashPassword(requestDTO.getPassword()));
             }
-            if (requestDTO.getAddress() != null){
-                 existingUser.setAddress(requestDTO.getAddress());
+            if (requestDTO.getAddress() != null) {
+                existingUser.setAddress(requestDTO.getAddress());
             }
             User updatedUser = userService.updateUser(existingUser);
             UserResponseDTO responseDTO = UserMapper.toResponseDTO(updatedUser);
