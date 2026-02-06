@@ -16,7 +16,7 @@ import java.util.Optional;
 @Slf4j
 public class HostDAOImpl implements HostDAO {
 
-    private final String SELECT_HOST_JOIN = "SELECT u.id AS u_id, u.first_name, u.last_name, u.email, u.address, u.registration_date AS u_reg, "
+    private final String SELECT_HOST_JOIN = "SELECT u.id AS user_id, u.first_name, u.last_name, u.email, u.address, u.registration_date AS registration_date, "
             +
             "h.host_code, h.total_bookings, h.is_super_host, h.registration_date AS h_reg " +
             "FROM users u " +
@@ -257,7 +257,7 @@ public class HostDAOImpl implements HostDAO {
         host.setLastName(rs.getString("last_name"));
         host.setEmail(rs.getString("email"));
         host.setAddress(rs.getString("address"));
-        host.setRegistrationDate(DateConverter.date2LocalDate(rs.getDate("u_reg")));
+        host.setRegistrationDate(DateConverter.date2LocalDate(rs.getDate("registration_date")));
         host.setHost_code(rs.getString("host_code"));
         host.setTotal_bookings(rs.getInt("total_bookings"));
         host.setSuperHost(rs.getBoolean("is_super_host"));
