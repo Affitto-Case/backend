@@ -49,3 +49,5 @@ lombok.config
 *.txt
 
 Suggerimenti.md
+
+target/

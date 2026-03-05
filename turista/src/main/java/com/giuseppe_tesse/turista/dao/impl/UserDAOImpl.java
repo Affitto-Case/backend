@@ -300,7 +300,7 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    // ==================== UTILITY ====================
+    // ==================== UTILITY =====================
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
